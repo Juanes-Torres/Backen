@@ -9,48 +9,22 @@ class UsuarioTest {
 
     @Test
     void crearClienteNuevo_quedaActivoYConEmailEnMinusculas() {
-
-        Usuario usuario = Usuario.nuevo(
-                "Juan Torres",
-                "  JUAN@Mail.com ",
-                "hash",
-                Rol.CLIENTE,
-                null,
-                null
-        );
+        Usuario usuario = Usuario.nuevo("Juan Torres", "  JUAN@Mail.com ", "hash", Rol.CLIENTE, null, null);
 
         assertEquals("juan@mail.com", usuario.getEmail());
         assertTrue(usuario.isActivo());
-        assertNull(usuario.getId());
+        assertNull(usuario.getId()); // el id lo pone la base de datos al guardar
     }
 
     @Test
     void crearVendedorSinAlmacen_lanzaError() {
-
         assertThrows(ReglaNegocioException.class, () ->
-                Usuario.nuevo(
-                        "Ana",
-                        "ana@kairos.com",
-                        "hash",
-                        Rol.VENDEDOR,
-                        null,
-                        null
-                )
-        );
+                Usuario.nuevo("Ana", "ana@kairos.com", "hash", Rol.VENDEDOR, null, null));
     }
 
     @Test
     void crearUsuarioConEmailInvalido_lanzaError() {
-
         assertThrows(ReglaNegocioException.class, () ->
-                Usuario.nuevo(
-                        "Ana",
-                        "correo-sin-arroba",
-                        "hash",
-                        Rol.CLIENTE,
-                        null,
-                        null
-                )
-        );
+                Usuario.nuevo("Ana", "correo-sin-arroba", "hash", Rol.CLIENTE, null, null));
     }
 }
