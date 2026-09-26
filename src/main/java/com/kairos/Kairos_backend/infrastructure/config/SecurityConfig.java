@@ -56,6 +56,8 @@ public class SecurityConfig {
                         // Catálogo web: cualquiera puede consultarlo (RF03)
                         .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/**",
                                 "/api/categorias", "/api/categorias/**").permitAll()
+                        // Documentación Swagger / OpenAPI: pública
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // Todo lo demás exige token (los roles se revisan con @PreAuthorize)
                         .anyRequest().authenticated()
                 )
