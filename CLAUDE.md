@@ -141,7 +141,7 @@ Las respuestas de error tienen siempre el formato `{status, error, mensaje, camp
 
 ### Paso 4: Cerrar
 
-- Haz los commits de la integración en la rama (ver 7.2), súbela y crea el **Pull Request** hacia `main` con `gh pr create`. Una vez que todo esté en verde, fusiónalo con `gh pr merge --merge`.
+- Haz los commits de la integración en la rama (ver 7.2), súbela y crea el **Pull Request** hacia `desarrollo` con `gh pr create` (ver 7.3). Una vez que todo esté en verde, fusiónalo con `gh pr merge --merge`.
 - Al final, dale al usuario un **resumen corto en español**: qué quedó funcionando, qué se corrigió, el enlace del repositorio y del Pull Request, y cómo explicar el flujo de una petición en la review:
 
 ```
@@ -176,9 +176,29 @@ Controller → UseCase → Service → Dominio → RepositoryPort → Persistenc
 - Formato: `tipo(alcance): descripción en español`. Tipos: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`.
 - **Antes de cada commit:** revisa `git status` para no incluir `target/`, `.idea/` ni archivos ajenos al proyecto. Solo haz commit si `.\mvnw.cmd clean test` compila (salvo el commit inicial del Paso 0).
 - **Después de cada commit:** `git push`.
-- **Nunca** uses `git push --force` ni reescribas el historial de `main`.
+- **Nunca** uses `git push --force` ni reescribas el historial de `produccion`, `pre-produccion`, `desarrollo` ni `main`.
 - Incluye este `CLAUDE.md` en el repositorio.
 - Explícale al usuario, en una línea, qué es cada commit que hagas, para que aprenda a hacerlo solo.
+- **No** agregues `Co-Authored-By: Claude` ni "Generated with Claude Code" en commits ni Pull Requests.
+
+### 7.3 Ramas y ambientes
+
+Repositorio: `https://github.com/Juanes-Torres/Backen`. La rama principal (default) es `produccion`.
+
+```
+feature/xxx  →  desarrollo  →  pre-produccion  →  produccion
+```
+
+| Rama | Ambiente | Qué recibe |
+|---|---|---|
+| `desarrollo` | Desarrollo | Pull Requests de las ramas `feature/...`, `fix/...` y `docs/...` |
+| `pre-produccion` | Pruebas antes de publicar | Pull Request desde `desarrollo` cuando está estable |
+| `produccion` | Versión final (default) | Pull Request desde `pre-produccion` cuando todo está probado |
+
+- Las ramas de trabajo salen **siempre de `desarrollo`** (`git switch desarrollo; git pull; git switch -c feature/xxx`).
+- Los Pull Requests de trabajo van **hacia `desarrollo`**, nunca directo a `produccion`.
+- Para publicar: PR `desarrollo` → `pre-produccion`, se prueba (`.\mvnw.cmd test` + endpoints), y luego PR `pre-produccion` → `produccion`.
+- `main` es la rama antigua; ya no se usa para trabajar.
 
 ## 8. Las 3 funcionalidades (referencia)
 
