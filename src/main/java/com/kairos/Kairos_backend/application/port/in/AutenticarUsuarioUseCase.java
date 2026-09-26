@@ -1,6 +1,14 @@
 package com.kairos.Kairos_backend.application.port.in;
 
+import com.kairos.Kairos_backend.domain.model.Usuario;
+
+/**
+ * CASO DE USO: iniciar sesión.
+ */
 public interface AutenticarUsuarioUseCase {
 
-    String autenticar(String email, String password);
+    ResultadoLogin autenticar(String email, String password);
+
+    record ResultadoLogin(String token, Usuario usuario) {
+    }
 }
