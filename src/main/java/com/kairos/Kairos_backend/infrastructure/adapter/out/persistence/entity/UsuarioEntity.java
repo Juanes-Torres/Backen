@@ -9,6 +9,9 @@ import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 
+/**
+ * Espejo de la tabla "usuario". Solo lee y escribe; no tiene reglas de negocio.
+ */
 @Entity
 @Table(name = "usuario")
 public class UsuarioEntity {
@@ -45,10 +48,8 @@ public class UsuarioEntity {
     protected UsuarioEntity() {
     }
 
-    public UsuarioEntity(Long id, String nombre, String email, String passwordHash,
-                         String rol, String telefono, Long idAlmacen,
-                         LocalDate fechaRegistro, boolean activo) {
-
+    public UsuarioEntity(Long id, String nombre, String email, String passwordHash, String rol,
+                         String telefono, Long idAlmacen, LocalDate fechaRegistro, boolean activo) {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
@@ -60,39 +61,13 @@ public class UsuarioEntity {
         this.activo = activo;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public String getRol() {
-        return rol;
-    }
-
-    public String getTelefono() {
-        return telefono;
-    }
-
-    public Long getIdAlmacen() {
-        return idAlmacen;
-    }
-
-    public LocalDate getFechaRegistro() {
-        return fechaRegistro;
-    }
-
-    public boolean isActivo() {
-        return activo;
-    }
+    public Long getId() { return id; }
+    public String getNombre() { return nombre; }
+    public String getEmail() { return email; }
+    public String getPasswordHash() { return passwordHash; }
+    public String getRol() { return rol; }
+    public String getTelefono() { return telefono; }
+    public Long getIdAlmacen() { return idAlmacen; }
+    public LocalDate getFechaRegistro() { return fechaRegistro; }
+    public boolean isActivo() { return activo; }
 }

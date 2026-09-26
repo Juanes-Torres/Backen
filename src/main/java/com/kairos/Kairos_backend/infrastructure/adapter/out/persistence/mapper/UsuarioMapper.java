@@ -9,33 +9,13 @@ public final class UsuarioMapper {
     private UsuarioMapper() {
     }
 
-    public static UsuarioEntity toEntity(Usuario usuario) {
-
-        return new UsuarioEntity(
-                usuario.getId(),
-                usuario.getNombre(),
-                usuario.getEmail(),
-                usuario.getPasswordHash(),
-                usuario.getRol().name(),
-                usuario.getTelefono(),
-                usuario.getIdAlmacen(),
-                usuario.getFechaRegistro(),
-                usuario.isActivo()
-        );
+    public static UsuarioEntity toEntity(Usuario u) {
+        return new UsuarioEntity(u.getId(), u.getNombre(), u.getEmail(), u.getPasswordHash(),
+                u.getRol().name(), u.getTelefono(), u.getIdAlmacen(), u.getFechaRegistro(), u.isActivo());
     }
 
-    public static Usuario toDomain(UsuarioEntity entity) {
-
-        return new Usuario(
-                entity.getId(),
-                entity.getNombre(),
-                entity.getEmail(),
-                entity.getPasswordHash(),
-                Rol.valueOf(entity.getRol()),
-                entity.getTelefono(),
-                entity.getIdAlmacen(),
-                entity.getFechaRegistro(),
-                entity.isActivo()
-        );
+    public static Usuario toDomain(UsuarioEntity e) {
+        return new Usuario(e.getId(), e.getNombre(), e.getEmail(), e.getPasswordHash(),
+                Rol.valueOf(e.getRol()), e.getTelefono(), e.getIdAlmacen(), e.getFechaRegistro(), e.isActivo());
     }
 }
