@@ -173,7 +173,7 @@ Controller → UseCase → Service → Dominio → RepositoryPort → Persistenc
   6. `feat(db): migración V2 con datos iniciales`
   7. `test(dominio): pruebas de Producto e Inventario`
   8. `fix: ...` por cada corrección que hagas al compilar o probar
-- Formato: `tipo(alcance): descripción en español`. Tipos: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`.
+- Formato: `tipo: descripción corta en español`, **al grano y sin tecnicismos** (el usuario lo pidió así). Tipos: `feat`, `fix`, `test`, `docs`, `chore`, `refactor`. Ejemplo: `feat: script para ver y elegir el ambiente`.
 - **Antes de cada commit:** revisa `git status` para no incluir `target/`, `.idea/` ni archivos ajenos al proyecto. Solo haz commit si `.\mvnw.cmd clean test` compila (salvo el commit inicial del Paso 0).
 - **Después de cada commit:** `git push`.
 - **Nunca** uses `git push --force` ni reescribas el historial de `produccion`, `pre-produccion`, `desarrollo` ni `main`.
@@ -199,6 +199,18 @@ feature/xxx  →  desarrollo  →  pre-produccion  →  produccion
 - Los Pull Requests de trabajo van **hacia `desarrollo`**, nunca directo a `produccion`.
 - Para publicar: PR `desarrollo` → `pre-produccion`, se prueba (`.\mvnw.cmd test` + endpoints), y luego PR `pre-produccion` → `produccion`.
 - `main` es la rama antigua; ya no se usa para trabajar.
+
+### 7.4 Configuración por ambiente (perfiles de Spring Boot)
+
+| Archivo | Uso |
+|---|---|
+| `application.properties` | Lo común a todos. Perfil por defecto: `desarrollo`. Puerto: `SERVER_PORT` (opcional, por defecto 8080) |
+| `application-desarrollo.properties` | Local, con valores por defecto (`kairos_db`, `show-sql=true`) |
+| `application-pre-produccion.properties` / `application-produccion.properties` | Sin valores por defecto: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `CORS_ORIGINS`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` son obligatorias; si falta una, la app no arranca |
+
+- Elegir perfil: `.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=produccion"` o `SPRING_PROFILES_ACTIVE=produccion`.
+- Nunca escribir secretos reales en los `.properties` de pre-producción ni de producción.
+- `scripts\ambiente.ps1` muestra los ambientes y sus variables (secretos ocultos) y arranca el backend: `.\scripts\ambiente.ps1 -Ambiente produccion -SoloMostrar`.
 
 ## 8. Las 3 funcionalidades (referencia)
 
