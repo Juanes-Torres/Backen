@@ -200,6 +200,17 @@ feature/xxx  →  desarrollo  →  pre-produccion  →  produccion
 - Para publicar: PR `desarrollo` → `pre-produccion`, se prueba (`.\mvnw.cmd test` + endpoints), y luego PR `pre-produccion` → `produccion`.
 - `main` es la rama antigua; ya no se usa para trabajar.
 
+### 7.4 Configuración por ambiente (perfiles de Spring Boot)
+
+| Archivo | Uso |
+|---|---|
+| `application.properties` | Lo común a todos. Perfil por defecto: `desarrollo` |
+| `application-desarrollo.properties` | Local, con valores por defecto (`kairos_db`, `show-sql=true`) |
+| `application-pre-produccion.properties` / `application-produccion.properties` | Sin valores por defecto: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, `CORS_ORIGINS`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` son obligatorias; si falta una, la app no arranca |
+
+- Elegir perfil: `.\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=produccion"` o `SPRING_PROFILES_ACTIVE=produccion`.
+- Nunca escribir secretos reales en los `.properties` de pre-producción ni de producción.
+
 ## 8. Las 3 funcionalidades (referencia)
 
 - **F1 Usuarios y autenticación (RF01, RF02):**
