@@ -198,7 +198,8 @@ feature/xxx  →  desarrollo  →  pre-produccion  →  produccion
 - Las ramas de trabajo salen **siempre de `desarrollo`** (`git switch desarrollo; git pull; git switch -c feature/xxx`).
 - Los Pull Requests de trabajo van **hacia `desarrollo`**, nunca directo a `produccion`.
 - Para publicar: PR `desarrollo` → `pre-produccion`, se prueba (`.\mvnw.cmd test` + endpoints), y luego PR `pre-produccion` → `produccion`.
-- `main` es la rama antigua; ya no se usa para trabajar.
+- En GitHub solo quedan fijas `desarrollo`, `pre-produccion` y `produccion` (la antigua `main` se borró el 2026-10-06).
+- Las ramas `feature/...`, `fix/...` y `docs/...` son temporales: GitHub las borra solo al fusionar el PR (opción "delete branch on merge" activada). Después borra también la copia local con `git branch -d`.
 
 ### 7.4 Configuración por ambiente (perfiles de Spring Boot)
 
