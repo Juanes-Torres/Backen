@@ -1,7 +1,7 @@
 package com.kairos.Kairos_backend.infrastructure.config;
 
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase;
-import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarUsuarioCommand;
+import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarEmpleadoCommand;
 import com.kairos.Kairos_backend.application.port.out.UsuarioRepositoryPort;
 import com.kairos.Kairos_backend.domain.model.Rol;
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ public class AdminInicial implements CommandLineRunner {
         if (usuarioRepository.existePorEmail(email)) {
             return;
         }
-        registrarUsuario.registrar(new RegistrarUsuarioCommand(
+        registrarUsuario.registrarEmpleado(new RegistrarEmpleadoCommand(
                 "Administrador KAIRÓS", email, password, Rol.ADMINISTRADOR, null, null));
         log.info("Administrador inicial creado: {}", email);
     }
