@@ -27,8 +27,12 @@ $porDefectoDesarrollo = @{
     CORS_ORIGINS   = 'http://localhost:5173'
     ADMIN_EMAIL    = 'admin@kairos.com'
     ADMIN_PASSWORD = 'Admin123*'
+    FRONTEND_URL   = 'http://localhost:5173'
 }
-$variables = 'DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'CORS_ORIGINS', 'ADMIN_EMAIL', 'ADMIN_PASSWORD'
+$variables = 'DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'CORS_ORIGINS', 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'FRONTEND_URL'
+
+# Opcionales en todos los ambientes: correo de bienvenida (si no estan, el correo queda apagado)
+$opcionalesCorreo = 'MAIL_ENABLED', 'MAIL_USERNAME', 'MAIL_PASSWORD'
 
 function Ocultar([string]$nombre, [string]$valor) {
     if ($nombre -match 'PASSWORD|SECRET') { return '****' }
@@ -74,6 +78,16 @@ if ($puerto) {
 } else {
     $puerto = '8080'
     $tabla += [PSCustomObject]@{ Variable = 'SERVER_PORT'; Valor = $puerto; Origen = 'valor por defecto (opcional)' }
+}
+foreach ($v in $opcionalesCorreo) {
+    $valor = [Environment]::GetEnvironmentVariable($v)
+    if ($valor) {
+        $tabla += [PSCustomObject]@{ Variable = $v; Valor = (Ocultar $v $valor); Origen = 'variable de entorno' }
+    } elseif ($Ambiente -eq 'desarrollo') {
+        $tabla += [PSCustomObject]@{ Variable = $v; Valor = '-'; Origen = 'opcional (o en secrets.properties)' }
+    } else {
+        $tabla += [PSCustomObject]@{ Variable = $v; Valor = '-'; Origen = 'opcional (correo apagado)' }
+    }
 }
 $tabla | Format-Table -AutoSize | Out-String | Write-Host
 
