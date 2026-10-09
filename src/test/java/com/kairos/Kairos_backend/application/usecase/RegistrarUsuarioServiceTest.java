@@ -1,11 +1,13 @@
 package com.kairos.Kairos_backend.application.usecase;
 
-import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarUsuarioCommand;
+import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarClienteCommand;
+import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarEmpleadoCommand;
 import com.kairos.Kairos_backend.application.port.out.AlmacenRepositoryPort;
 import com.kairos.Kairos_backend.application.port.out.NotificacionPort;
 import com.kairos.Kairos_backend.application.port.out.PasswordEncoderPort;
 import com.kairos.Kairos_backend.application.port.out.UsuarioRepositoryPort;
 import com.kairos.Kairos_backend.domain.exception.RecursoDuplicadoException;
+import com.kairos.Kairos_backend.domain.exception.ReglaNegocioException;
 import com.kairos.Kairos_backend.domain.model.Almacen;
 import com.kairos.Kairos_backend.domain.model.Rol;
 import com.kairos.Kairos_backend.domain.model.Usuario;
@@ -42,7 +44,7 @@ class RegistrarUsuarioServiceTest {
 
     @Test
     void alRegistrarSeEnviaLaBienvenidaUnaVezConElUsuarioGuardado() {
-        Usuario creado = servicio.registrar(comando("ana@correo.com"));
+        Usuario creado = servicio.registrarCliente(comando("ana@correo.com"));
 
         assertEquals(1, notificaciones.enviados.size());
         Usuario notificado = notificaciones.enviados.get(0);
@@ -53,16 +55,44 @@ class RegistrarUsuarioServiceTest {
 
     @Test
     void siElEmailYaExisteNoSeEnviaCorreo() {
-        servicio.registrar(comando("ana@correo.com"));
+        servicio.registrarCliente(comando("ana@correo.com"));
         notificaciones.enviados.clear();
 
         assertThrows(RecursoDuplicadoException.class,
-                () -> servicio.registrar(comando("ana@correo.com")));
+                () -> servicio.registrarCliente(comando("ana@correo.com")));
         assertTrue(notificaciones.enviados.isEmpty());
     }
 
-    private RegistrarUsuarioCommand comando(String email) {
-        return new RegistrarUsuarioCommand("Ana Ruiz", email, "secreta123", Rol.CLIENTE, null, null);
+    @Test
+    void elRegistroPublicoSiempreCreaUnCliente() {
+        Usuario creado = servicio.registrarCliente(comando("ana@correo.com"));
+
+        assertEquals(Rol.CLIENTE, creado.getRol());
+    }
+
+    @Test
+    void unEmpleadoNoPuedeSerCliente_yNoSeGuardaNada() {
+        ReglaNegocioException error = assertThrows(ReglaNegocioException.class,
+                () -> servicio.registrarEmpleado(empleado(Rol.CLIENTE)));
+
+        assertEquals("Los clientes se registran por POST /api/usuarios", error.getMessage());
+        assertTrue(usuarios.listarTodos().isEmpty());
+        assertTrue(notificaciones.enviados.isEmpty());
+    }
+
+    @Test
+    void unAdministradorPuedeCrearOtroAdministrador() {
+        Usuario creado = servicio.registrarEmpleado(empleado(Rol.ADMINISTRADOR));
+
+        assertEquals(Rol.ADMINISTRADOR, creado.getRol());
+    }
+
+    private RegistrarClienteCommand comando(String email) {
+        return new RegistrarClienteCommand("Ana Ruiz", email, "secreta123", null);
+    }
+
+    private RegistrarEmpleadoCommand empleado(Rol rol) {
+        return new RegistrarEmpleadoCommand("Luis Gómez", "luis@kairos.com", "secreta123", rol, null, null);
     }
 
     // ===== Clases falsas (implementaciones simples de los puertos) =====

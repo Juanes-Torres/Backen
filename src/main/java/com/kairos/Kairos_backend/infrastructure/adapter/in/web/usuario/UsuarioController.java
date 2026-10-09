@@ -4,9 +4,8 @@ import com.kairos.Kairos_backend.application.port.in.ActualizarUsuarioUseCase;
 import com.kairos.Kairos_backend.application.port.in.AutenticarUsuarioUseCase;
 import com.kairos.Kairos_backend.application.port.in.BuscarUsuarioUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase;
-import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarUsuarioCommand;
-import com.kairos.Kairos_backend.domain.exception.ReglaNegocioException;
-import com.kairos.Kairos_backend.domain.model.Rol;
+import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarClienteCommand;
+import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarEmpleadoCommand;
 import com.kairos.Kairos_backend.domain.model.Usuario;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -51,9 +50,8 @@ public class UsuarioController {
     /** RF01 - Registro público de clientes. Siempre crea rol CLIENTE. */
     @PostMapping
     public ResponseEntity<UsuarioResponse> registrarCliente(@Valid @RequestBody RegistroClienteRequest request) {
-        Usuario creado = registrarUsuario.registrar(new RegistrarUsuarioCommand(
-                request.nombre(), request.email(), request.password(),
-                Rol.CLIENTE, request.telefono(), null));
+        Usuario creado = registrarUsuario.registrarCliente(new RegistrarClienteCommand(
+                request.nombre(), request.email(), request.password(), request.telefono()));
         return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponse.desde(creado));
     }
 
@@ -74,10 +72,7 @@ public class UsuarioController {
     @PostMapping("/empleados")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
     public ResponseEntity<UsuarioResponse> crearEmpleado(@Valid @RequestBody CrearEmpleadoRequest request) {
-        if (request.rol() == Rol.CLIENTE) {
-            throw new ReglaNegocioException("Los clientes se registran por POST /api/usuarios");
-        }
-        Usuario creado = registrarUsuario.registrar(new RegistrarUsuarioCommand(
+        Usuario creado = registrarUsuario.registrarEmpleado(new RegistrarEmpleadoCommand(
                 request.nombre(), request.email(), request.password(),
                 request.rol(), request.telefono(), request.idAlmacen()));
         return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponse.desde(creado));

@@ -8,6 +8,7 @@ import com.kairos.Kairos_backend.application.port.out.UsuarioRepositoryPort;
 import com.kairos.Kairos_backend.domain.exception.RecursoDuplicadoException;
 import com.kairos.Kairos_backend.domain.exception.RecursoNoEncontradoException;
 import com.kairos.Kairos_backend.domain.exception.ReglaNegocioException;
+import com.kairos.Kairos_backend.domain.model.Rol;
 import com.kairos.Kairos_backend.domain.model.Usuario;
 import org.springframework.stereotype.Service;
 
@@ -32,31 +33,49 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase {
     }
 
     @Override
-    public Usuario registrar(RegistrarUsuarioCommand command) {
+    public Usuario registrarCliente(RegistrarClienteCommand command) {
+        // Regla: el registro público siempre crea un CLIENTE y sin almacén
+        return registrar(command.nombre(), command.email(), command.password(),
+                Rol.CLIENTE, command.telefono(), null);
+    }
+
+    @Override
+    public Usuario registrarEmpleado(RegistrarEmpleadoCommand command) {
+        // Regla: un empleado nunca es CLIENTE (los clientes usan el registro público)
+        if (command.rol() == Rol.CLIENTE) {
+            throw new ReglaNegocioException("Los clientes se registran por POST /api/usuarios");
+        }
+        return registrar(command.nombre(), command.email(), command.password(),
+                command.rol(), command.telefono(), command.idAlmacen());
+    }
+
+    /** Pasos comunes a todo registro. */
+    private Usuario registrar(String nombre, String email, String password,
+                              Rol rol, String telefono, Long idAlmacen) {
         // 1. La contraseña en texto plano solo existe aquí: validarla antes de cifrarla
-        if (command.password() == null || command.password().length() < LONGITUD_MINIMA_PASSWORD) {
+        if (password == null || password.length() < LONGITUD_MINIMA_PASSWORD) {
             throw new ReglaNegocioException(
                     "La contraseña debe tener al menos " + LONGITUD_MINIMA_PASSWORD + " caracteres");
         }
 
         // 2. El email no puede estar repetido
-        if (command.email() != null && usuarioRepository.existePorEmail(command.email())) {
-            throw new RecursoDuplicadoException("Ya existe un usuario con el email " + command.email());
+        if (email != null && usuarioRepository.existePorEmail(email)) {
+            throw new RecursoDuplicadoException("Ya existe un usuario con el email " + email);
         }
 
         // 3. Si trae almacén, el almacén debe existir
-        if (command.idAlmacen() != null && !almacenRepository.existePorId(command.idAlmacen())) {
-            throw new RecursoNoEncontradoException("No existe un almacén con id " + command.idAlmacen());
+        if (idAlmacen != null && !almacenRepository.existePorId(idAlmacen)) {
+            throw new RecursoNoEncontradoException("No existe un almacén con id " + idAlmacen);
         }
 
         // 4. El dominio valida sus reglas (nombre, email, rol, vendedor con almacén...)
         Usuario nuevo = Usuario.nuevo(
-                command.nombre(),
-                command.email(),
-                passwordEncoder.cifrar(command.password()),
-                command.rol(),
-                command.telefono(),
-                command.idAlmacen()
+                nombre,
+                email,
+                passwordEncoder.cifrar(password),
+                rol,
+                telefono,
+                idAlmacen
         );
 
         // 5. Guardar
