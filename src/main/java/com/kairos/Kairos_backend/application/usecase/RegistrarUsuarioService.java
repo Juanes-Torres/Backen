@@ -2,6 +2,7 @@ package com.kairos.Kairos_backend.application.usecase;
 
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase;
 import com.kairos.Kairos_backend.application.port.out.AlmacenRepositoryPort;
+import com.kairos.Kairos_backend.application.port.out.NotificacionPort;
 import com.kairos.Kairos_backend.application.port.out.PasswordEncoderPort;
 import com.kairos.Kairos_backend.application.port.out.UsuarioRepositoryPort;
 import com.kairos.Kairos_backend.domain.exception.RecursoDuplicadoException;
@@ -18,13 +19,16 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase {
     private final UsuarioRepositoryPort usuarioRepository;
     private final AlmacenRepositoryPort almacenRepository;
     private final PasswordEncoderPort passwordEncoder;
+    private final NotificacionPort notificacionPort;
 
     public RegistrarUsuarioService(UsuarioRepositoryPort usuarioRepository,
                                    AlmacenRepositoryPort almacenRepository,
-                                   PasswordEncoderPort passwordEncoder) {
+                                   PasswordEncoderPort passwordEncoder,
+                                   NotificacionPort notificacionPort) {
         this.usuarioRepository = usuarioRepository;
         this.almacenRepository = almacenRepository;
         this.passwordEncoder = passwordEncoder;
+        this.notificacionPort = notificacionPort;
     }
 
     @Override
@@ -56,6 +60,10 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase {
         );
 
         // 5. Guardar
-        return usuarioRepository.guardar(nuevo);
+        Usuario guardado = usuarioRepository.guardar(nuevo);
+
+        // 6. Dar la bienvenida: es asíncrono, no bloquea ni hace fallar el registro
+        notificacionPort.enviarBienvenida(guardado);
+        return guardado;
     }
 }

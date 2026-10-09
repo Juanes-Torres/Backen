@@ -198,7 +198,8 @@ feature/xxx  →  desarrollo  →  pre-produccion  →  produccion
 - Las ramas de trabajo salen **siempre de `desarrollo`** (`git switch desarrollo; git pull; git switch -c feature/xxx`).
 - Los Pull Requests de trabajo van **hacia `desarrollo`**, nunca directo a `produccion`.
 - Para publicar: PR `desarrollo` → `pre-produccion`, se prueba (`.\mvnw.cmd test` + endpoints), y luego PR `pre-produccion` → `produccion`.
-- `main` es la rama antigua; ya no se usa para trabajar.
+- En GitHub solo quedan fijas `desarrollo`, `pre-produccion` y `produccion` (la antigua `main` se borró el 2026-10-06).
+- Las ramas `feature/...`, `fix/...` y `docs/...` son temporales: GitHub las borra solo al fusionar el PR (opción "delete branch on merge" activada). Después borra también la copia local con `git branch -d`.
 
 ### 7.4 Configuración por ambiente (perfiles de Spring Boot)
 
@@ -231,3 +232,263 @@ feature/xxx  →  desarrollo  →  pre-produccion  →  produccion
 ## 9. Fuera de alcance por ahora
 
 Ventas (RF04), garantías, traslados, jornadas, fidelización, reportes, IA y pagos: son los próximos incrementos. **No implementarlos en esta tarea.**
+
+## 10. TAREA 2: correo de bienvenida al registrarse (Gmail)
+
+**Qué pidió el usuario:** cuando alguien se registra, el sistema le envía un correo diciéndole que quedó registrado en KAIRÓS. Esto corresponde a la dependencia "Servicio de Notificaciones (email)" de la Tabla 5 del Documento V1.
+
+### 10.1 Decisión técnica (explícasela al usuario en 3 líneas)
+
+- Se usa el **servidor de correo de Gmail (SMTP de Google)** con una **Contraseña de aplicación** de Google, a través de `spring-boot-starter-mail`.
+- Se descartó la **Gmail API con OAuth2** para esta etapa: exige proyecto en Google Cloud, pantalla de consentimiento y tokens de actualización. Es mucho más complejo para el mismo resultado. Queda como mejora futura.
+- En hexagonal es otro **puerto de salida** (`NotificacionPort`) con su **adaptador** (`GmailNotificacionAdapter`). El caso de uso no sabe que existe Gmail.
+
+### 10.2 Reglas de esta tarea
+
+- **Rama:** `feature/correo-bienvenida`, creada desde `desarrollo` actualizado. PR hacia `desarrollo`.
+- **Si el correo falla, el registro NO debe fallar:** se registra un aviso en el log y el usuario queda creado igual.
+- **El envío es asíncrono** (`@Async`), para que la respuesta del registro no espere a Gmail.
+- **Con el correo deshabilitado** (`kairos.mail.enabled=false`) la app debe arrancar y las pruebas deben pasar sin credenciales. Para eso se usa un adaptador "deshabilitado" que solo escribe en el log.
+- **Secretos:**
+  - La contraseña de aplicación **nunca** va en archivos versionados.
+  - En desarrollo va en `secrets.properties` (raíz del proyecto, **agregarlo al `.gitignore`**).
+  - En pre-producción y producción va en variables de entorno.
+- **Dependencia nueva:** `spring-boot-starter-mail`. El usuario ya la aprobó al pedir esta funcionalidad. Explica para qué es.
+- **Escapa el nombre del usuario** en el HTML (`HtmlUtils.htmlEscape`) para evitar inyección de HTML.
+
+### 10.3 Archivos
+
+**1. `pom.xml`** — agregar dentro de `<dependencies>`:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-mail</artifactId>
+</dependency>
+```
+
+**2. `application/port/out/NotificacionPort.java`**
+
+```java
+package com.kairos.Kairos_backend.application.port.out;
+
+import com.kairos.Kairos_backend.domain.model.Usuario;
+
+/**
+ * PUERTO DE SALIDA: avisarle algo al usuario (hoy por correo).
+ * El caso de uso no sabe si por detrás hay Gmail, otro proveedor o nada.
+ */
+public interface NotificacionPort {
+
+    void enviarBienvenida(Usuario usuario);
+}
+```
+
+**3. `application/usecase/RegistrarUsuarioService.java`**
+
+Inyectar `NotificacionPort` en el constructor y, **después de guardar**, notificar:
+
+```java
+Usuario guardado = usuarioRepository.guardar(nuevo);
+notificacionPort.enviarBienvenida(guardado);   // asíncrono: no bloquea ni hace fallar el registro
+return guardado;
+```
+
+**4. `infrastructure/adapter/out/notificacion/GmailNotificacionAdapter.java`**
+
+```java
+package com.kairos.Kairos_backend.infrastructure.adapter.out.notificacion;
+
+import com.kairos.Kairos_backend.application.port.out.NotificacionPort;
+import com.kairos.Kairos_backend.domain.model.Usuario;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+import org.springframework.web.util.HtmlUtils;
+
+import java.io.UnsupportedEncodingException;
+
+/**
+ * ADAPTADOR de NotificacionPort que envía correos con el servidor SMTP de Gmail.
+ * Solo se activa si kairos.mail.enabled=true.
+ */
+@Component
+@ConditionalOnProperty(name = "kairos.mail.enabled", havingValue = "true")
+public class GmailNotificacionAdapter implements NotificacionPort {
+
+    private static final Logger log = LoggerFactory.getLogger(GmailNotificacionAdapter.class);
+
+    private final JavaMailSender mailSender;
+    private final String remitente;
+    private final String nombreRemitente;
+    private final String urlFrontend;
+
+    public GmailNotificacionAdapter(JavaMailSender mailSender,
+                                    @Value("${spring.mail.username}") String remitente,
+                                    @Value("${kairos.mail.from-name:KAIRÓS}") String nombreRemitente,
+                                    @Value("${kairos.frontend.url:http://localhost:5173}") String urlFrontend) {
+        this.mailSender = mailSender;
+        this.remitente = remitente;
+        this.nombreRemitente = nombreRemitente;
+        this.urlFrontend = urlFrontend;
+    }
+
+    @Async
+    @Override
+    public void enviarBienvenida(Usuario usuario) {
+        try {
+            MimeMessage mensaje = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, false, "UTF-8");
+            helper.setFrom(remitente, nombreRemitente);
+            helper.setTo(usuario.getEmail());
+            helper.setSubject("¡Bienvenido a KAIRÓS!");
+            helper.setText(plantilla(usuario), true);   // true = contenido HTML
+            mailSender.send(mensaje);
+            log.info("Correo de bienvenida enviado a {}", usuario.getEmail());
+        } catch (MessagingException | UnsupportedEncodingException | MailException e) {
+            // El registro ya quedó guardado: solo se deja constancia del fallo
+            log.warn("No se pudo enviar el correo de bienvenida a {}: {}", usuario.getEmail(), e.getMessage());
+        }
+    }
+
+    private String plantilla(Usuario usuario) {
+        String nombre = HtmlUtils.htmlEscape(usuario.getNombre());
+        String email = HtmlUtils.htmlEscape(usuario.getEmail());
+        return """
+                <div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border:1px solid #d9dee5;border-radius:10px;overflow:hidden">
+                  <div style="background:#1f4e79;color:#fff;padding:20px 24px;font-size:24px;font-weight:bold;letter-spacing:2px">KAIRÓS</div>
+                  <div style="padding:24px;color:#1f2933;line-height:1.5">
+                    <h2 style="margin-top:0">¡Hola, %s!</h2>
+                    <p>Tu cuenta en <strong>KAIRÓS</strong> se creó correctamente.</p>
+                    <p><strong>Usuario:</strong> %s<br><strong>Rol:</strong> %s</p>
+                    <p>Ya puedes iniciar sesión, consultar nuestro catálogo y revisar tus compras.</p>
+                    <p style="text-align:center;margin:28px 0">
+                      <a href="%s/login" style="background:#1f4e79;color:#fff;padding:12px 22px;border-radius:6px;text-decoration:none">Iniciar sesión</a>
+                    </p>
+                    <p style="font-size:12px;color:#6b7280">Si no creaste esta cuenta, ignora este mensaje.</p>
+                  </div>
+                </div>
+                """.formatted(nombre, email, usuario.getRol().name(), urlFrontend);
+    }
+}
+```
+
+**5. `infrastructure/adapter/out/notificacion/NotificacionDeshabilitadaAdapter.java`**
+
+```java
+package com.kairos.Kairos_backend.infrastructure.adapter.out.notificacion;
+
+import com.kairos.Kairos_backend.application.port.out.NotificacionPort;
+import com.kairos.Kairos_backend.domain.model.Usuario;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
+
+/**
+ * Se usa cuando el correo está apagado (kairos.mail.enabled=false):
+ * la app funciona igual y solo deja constancia en el log.
+ */
+@Component
+@ConditionalOnProperty(name = "kairos.mail.enabled", havingValue = "false", matchIfMissing = true)
+public class NotificacionDeshabilitadaAdapter implements NotificacionPort {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificacionDeshabilitadaAdapter.class);
+
+    @Override
+    public void enviarBienvenida(Usuario usuario) {
+        log.info("Correo deshabilitado: no se envía la bienvenida a {}", usuario.getEmail());
+    }
+}
+```
+
+**6. `infrastructure/config/AsyncConfig.java`**
+
+```java
+package com.kairos.Kairos_backend.infrastructure.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+
+/** Activa @Async: el correo se envía en segundo plano. */
+@Configuration
+@EnableAsync
+public class AsyncConfig {
+}
+```
+
+**7. Configuración** (respetando los perfiles de la sección 7.4)
+
+- **`application.properties`** (común):
+
+  ```properties
+  # ===== Correo (servidor SMTP de Gmail) =====
+  kairos.mail.enabled=${MAIL_ENABLED:false}
+  kairos.mail.from-name=KAIRÓS
+  spring.mail.host=smtp.gmail.com
+  spring.mail.port=587
+  spring.mail.username=${MAIL_USERNAME:}
+  spring.mail.password=${MAIL_PASSWORD:}
+  spring.mail.properties.mail.smtp.auth=true
+  spring.mail.properties.mail.smtp.starttls.enable=true
+  ```
+
+- **`application-desarrollo.properties`**:
+
+  ```properties
+  # Secretos locales (NO se suben a GitHub)
+  spring.config.import=optional:file:./secrets.properties
+  kairos.frontend.url=http://localhost:5173
+  ```
+
+- **`secrets.properties.example`** (este sí se sube, como plantilla):
+
+  ```properties
+  # Copia este archivo como secrets.properties y llena tus datos. secrets.properties NO se sube a GitHub.
+  kairos.mail.enabled=true
+  spring.mail.username=tu_correo@gmail.com
+  spring.mail.password=xxxx xxxx xxxx xxxx
+  ```
+
+- **`.gitignore`**: agregar `secrets.properties`.
+- **Pre-producción y producción:** agregar `kairos.frontend.url=${FRONTEND_URL}` a sus `.properties`. Documenta en `scripts\ambiente.ps1` las variables nuevas `MAIL_ENABLED`, `MAIL_USERNAME`, `MAIL_PASSWORD` y `FRONTEND_URL` (secretos ocultos).
+
+**8. Prueba unitaria** `src/test/java/.../application/usecase/RegistrarUsuarioServiceTest.java`
+
+Usa **clases falsas escritas a mano** (implementaciones simples de los puertos, sin Mockito ni base de datos) y comprueba:
+
+- Al registrar, se llama a `NotificacionPort.enviarBienvenida` **una vez**, con el usuario ya guardado.
+- Si el email ya existe, **no** se envía correo.
+
+Esto demuestra en la review la ventaja de los puertos: el caso de uso se prueba sin Gmail.
+
+### 10.4 Lo que hace el usuario (guíalo paso a paso cuando llegues aquí)
+
+1. **Crear la contraseña de aplicación de Google.** Conviene usar una cuenta de Gmail del proyecto, por ejemplo `kairos.notificaciones@gmail.com`, y no la personal.
+   1. Ir a `myaccount.google.com` → **Seguridad** → activar **Verificación en 2 pasos**. Es obligatoria para poder crear contraseñas de aplicación.
+   2. Ir a `myaccount.google.com/apppasswords` → nombre: `KAIROS` → **Crear**.
+   3. Copiar los **16 caracteres** que muestra Google. Solo se ven una vez.
+2. **Crear `secrets.properties`** a partir de `secrets.properties.example` y llenar el correo y la contraseña de aplicación. **Nunca** pegues esa contraseña en el chat ni en archivos que se suban a GitHub.
+
+### 10.5 Verificación
+
+1. **Sin `secrets.properties`:** `.\mvnw.cmd clean test` en verde. La app arranca y al registrar aparece en el log "Correo deshabilitado…".
+2. **Con `secrets.properties`:** registrar por Postman un cliente con un **correo real del usuario** → **201** inmediato. En el log sale "Correo de bienvenida enviado a…" y el correo llega (revisar también **Spam**).
+3. **Con una contraseña incorrecta a propósito:** el registro sigue respondiendo **201** y el log muestra "No se pudo enviar…".
+4. **`git status`** no muestra `secrets.properties`.
+
+### 10.6 Commits sugeridos (estilo de la sección 7.2)
+
+1. `feat: enviar correo de bienvenida al registrarse`
+2. `test: probar que el registro avisa por correo`
+3. `docs: explicar cómo configurar el correo`
+
+Luego: push, PR hacia `desarrollo`, y un resumen en español para el usuario.
