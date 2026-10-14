@@ -37,3 +37,4 @@ Claude outputs/
 
 ### Secretos locales ###
 secrets.properties
+.env
