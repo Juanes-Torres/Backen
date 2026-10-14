@@ -17,7 +17,7 @@ KAIRÓS es un sistema web de inventario y ventas para franquicias de tecnología
 
 | Elemento | Valor |
 |---|---|
-| Ruta del backend | `C:\Users\JUANESTC\Downloads\Kairos-backend\Kairos-backend` (carpeta con `pom.xml`) |
+| Ruta del backend | `C:\Users\JUANESTC\Documents\Kairos-backend` (carpeta con `pom.xml`; antes estaba en Descargas) |
 | Paquete base | `com.kairos.Kairos_backend` |
 | Stack | Java 21 (se ejecuta con JDK 23), Spring Boot 4.1.1, Spring Security 7, JJWT 0.13.0, Spring Data JPA, Flyway, PostgreSQL 18, Maven Wrapper |
 | Base de datos | `jdbc:postgresql://localhost:5432/kairos_db`, usuario `kairos`, contraseña `kairos123` |
