@@ -8,6 +8,7 @@ Con Docker se levantan **PostgreSQL, el backend y el frontend juntos** con un so
 |---|---|
 | `Dockerfile` | La receta de la imagen del backend. Tiene dos etapas: la primera compila con Maven y la segunda solo ejecuta con Java 21, para que la imagen sea más liviana |
 | `docker-compose.yml` | Levanta tres contenedores: `kairos-db` (PostgreSQL 18), `kairos-backend` y `kairos-frontend` |
+| `docker-compose.github.yml` | Igual al anterior, pero descarga el código de GitHub: sirve para levantar KAIRÓS en **otro PC** sin bajar los proyectos (ver abajo) |
 | `.env.example` | Plantilla de las variables y los secretos. Se copia como `.env`, que **no** se sube a GitHub |
 | `.dockerignore` | Lo que Docker no copia a la imagen: `target/`, `.git/`, los secretos… |
 
@@ -41,6 +42,19 @@ Cuando en los logs aparezca `Started KairosBackendApplication`:
 - API: http://localhost:8080
 - Swagger: http://localhost:8080/swagger-ui.html
 - Administrador: el `ADMIN_EMAIL` y el `ADMIN_PASSWORD` de tu `.env`
+
+## En otro PC, sin descargar el código
+
+`docker-compose.github.yml` le dice a Docker que construya las imágenes **directo desde GitHub** (backend: rama `desarrollo`; frontend: rama `main`), usando el `Dockerfile` de cada repositorio. Trae claves de ejemplo de desarrollo, así que **no necesita `.env`**.
+
+1. Instala y abre Docker Desktop (no hace falta Git, Java ni Node).
+2. Crea una carpeta y copia ahí solo `docker-compose.github.yml` con el nombre `docker-compose.yml`.
+3. En esa carpeta: `docker compose up --build -d` (la primera vez tarda varios minutos).
+4. Abre http://localhost:5173 y entra con `admin@kairos.com` / `Admin123*`.
+
+- La base de datos empieza nueva en ese PC (tablas y datos iniciales de Flyway).
+- Para cambiar las claves, crea un `.env` junto al archivo con las variables de `.env.example`. Para algo público o en producción, cámbialas siempre.
+- Construye lo que esté **subido** a GitHub: los cambios que solo tengas en tu PC no aparecen.
 
 ## Comandos útiles
 

@@ -1,0 +1,85 @@
+# =========================================================
+# KAIRÓS - sistema completo SIN descargar el código
+# Docker baja el código de GitHub, construye las imágenes con
+# el Dockerfile de cada repositorio y levanta los 3 servicios.
+#
+# Solo necesitas Docker Desktop y este archivo:
+#   docker compose -f docker-compose.github.yml up --build -d
+#   (si lo renombras a docker-compose.yml basta con: docker compose up --build -d)
+#
+# Página:  http://localhost:5173
+# API:     http://localhost:8080   ·  Swagger: http://localhost:8080/swagger-ui.html
+# Admin:   admin@kairos.com / Admin123*
+#
+# Las claves de abajo son SOLO de ejemplo para desarrollo y demostración.
+# Para cambiarlas, crea un archivo .env junto a este (ver .env.example).
+# Detener: docker compose down    ·   Borrar también los datos: docker compose down -v
+# =========================================================
+
+services:
+
+  db:
+    image: postgres:18
+    container_name: kairos-db
+    environment:
+      POSTGRES_DB: kairos_db
+      POSTGRES_USER: ${DB_USERNAME:-kairos}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kairos123}
+    volumes:
+      # PostgreSQL 18 guarda sus datos en /var/lib/postgresql
+      - kairos-datos:/var/lib/postgresql
+    ports:
+      # 5433 afuera para no chocar con un PostgreSQL instalado en el PC
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-kairos} -d kairos_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      # Repositorio del backend, rama desarrollo. Usa el Dockerfile que está en él.
+      context: https://github.com/Juanes-Torres/Backen.git#desarrollo
+    image: kairos-backend
+    container_name: kairos-backend
+    depends_on:
+      db:
+        condition: service_healthy   # espera a que PostgreSQL acepte conexiones
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-desarrollo}
+      # Dentro de Docker la base de datos se llama "db" (el nombre del servicio)
+      DB_URL: jdbc:postgresql://db:5432/kairos_db
+      DB_USERNAME: ${DB_USERNAME:-kairos}
+      DB_PASSWORD: ${DB_PASSWORD:-kairos123}
+      JWT_SECRET: ${JWT_SECRET:-cambia-esta-clave-secreta-de-32-caracteres-min}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@kairos.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin123*}
+      # Correo de bienvenida (opcional: si no se llena, queda apagado)
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      # Repositorio del frontend, rama main. Usa el Dockerfile que está en él.
+      context: https://github.com/Juanes-Torres/Frontend.git#main
+      args:
+        # Dirección del backend que usa el NAVEGADOR (no el contenedor)
+        VITE_API_URL: http://localhost:${SERVER_PORT:-8080}
+    image: kairos-frontend
+    container_name: kairos-frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    restart: unless-stopped
+
+volumes:
+  kairos-datos:
