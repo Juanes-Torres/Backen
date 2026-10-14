@@ -1,8 +1,9 @@
 # =========================================================
-# KAIRÓS - backend + PostgreSQL con un solo comando
+# KAIRÓS - frontend + backend + PostgreSQL con un solo comando
 #   1. Copia .env.example como .env y llena los valores
 #   2. docker compose up --build
-#   3. API en http://localhost:8080  ·  Swagger en http://localhost:8080/swagger-ui.html
+#   3. Página en http://localhost:5173  ·  API en http://localhost:8080
+#      Swagger en http://localhost:8080/swagger-ui.html
 # Detener: docker compose down   (los datos se conservan en el volumen)
 # Borrar también los datos: docker compose down -v
 # =========================================================
@@ -53,6 +54,24 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
     ports:
       - "${SERVER_PORT:-8080}:8080"
+    restart: unless-stopped
+
+  frontend:
+    # El frontend está en OTRO repositorio (Juanes-Torres/Frontend).
+    # FRONTEND_PATH es la carpeta donde lo tienes, relativa a esta carpeta.
+    build:
+      context: ${FRONTEND_PATH:-../../frontend}
+      args:
+        # Dirección del backend que usa el NAVEGADOR (no el contenedor):
+        # por eso es localhost y no "backend"
+        VITE_API_URL: http://localhost:${SERVER_PORT:-8080}
+    image: kairos-frontend
+    container_name: kairos-frontend
+    depends_on:
+      - backend
+    ports:
+      # 5173, el mismo puerto de "npm run dev": así coincide con CORS_ORIGINS
+      - "${FRONTEND_PORT:-5173}:80"
     restart: unless-stopped
 
 volumes:
