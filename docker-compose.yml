@@ -1,0 +1,59 @@
+# =========================================================
+# KAIRÓS - backend + PostgreSQL con un solo comando
+#   1. Copia .env.example como .env y llena los valores
+#   2. docker compose up --build
+#   3. API en http://localhost:8080  ·  Swagger en http://localhost:8080/swagger-ui.html
+# Detener: docker compose down   (los datos se conservan en el volumen)
+# Borrar también los datos: docker compose down -v
+# =========================================================
+
+services:
+
+  db:
+    image: postgres:18
+    container_name: kairos-db
+    environment:
+      POSTGRES_DB: kairos_db
+      POSTGRES_USER: ${DB_USERNAME:-kairos}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el archivo .env}
+    volumes:
+      # PostgreSQL 18 guarda sus datos en /var/lib/postgresql
+      - kairos-datos:/var/lib/postgresql
+    ports:
+      # 5433 en tu computadora (el 5432 ya lo usa tu PostgreSQL local)
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-kairos} -d kairos_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build: .
+    image: kairos-backend
+    container_name: kairos-backend
+    depends_on:
+      db:
+        condition: service_healthy   # espera a que PostgreSQL acepte conexiones
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-desarrollo}
+      # Dentro de Docker la base de datos se llama "db" (el nombre del servicio)
+      DB_URL: jdbc:postgresql://db:5432/kairos_db
+      DB_USERNAME: ${DB_USERNAME:-kairos}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el archivo .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@kairos.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Falta ADMIN_PASSWORD en el archivo .env}
+      # Correo de bienvenida (opcional: si no se llena, queda apagado)
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    restart: unless-stopped
+
+volumes:
+  kairos-datos:
