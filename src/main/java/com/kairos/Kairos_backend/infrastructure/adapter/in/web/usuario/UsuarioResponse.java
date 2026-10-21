@@ -15,11 +15,12 @@ public record UsuarioResponse(
         Rol rol,
         String telefono,
         Long idAlmacen,
+        Long idEmpresa,
         LocalDate fechaRegistro,
         boolean activo
 ) {
     public static UsuarioResponse desde(Usuario u) {
         return new UsuarioResponse(u.getId(), u.getNombre(), u.getEmail(), u.getRol(),
-                u.getTelefono(), u.getIdAlmacen(), u.getFechaRegistro(), u.isActivo());
+                u.getTelefono(), u.getIdAlmacen(), u.getIdEmpresa(), u.getFechaRegistro(), u.isActivo());
     }
 }

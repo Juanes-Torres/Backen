@@ -53,6 +53,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Registro de clientes y login: públicos
                         .requestMatchers(HttpMethod.POST, "/api/usuarios", "/api/usuarios/login").permitAll()
+                        // Registro de empresas: público (queda pendiente de aprobación)
+                        .requestMatchers(HttpMethod.POST, "/api/empresas").permitAll()
                         // Catálogo web: cualquiera puede consultarlo (RF03)
                         .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/**",
                                 "/api/categorias", "/api/categorias/**").permitAll()

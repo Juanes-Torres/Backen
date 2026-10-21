@@ -31,7 +31,8 @@ public interface RegistrarUsuarioUseCase {
             String password,
             Rol rol,
             String telefono,
-            Long idAlmacen
+            Long idAlmacen,
+            Long idEmpresa
     ) {
     }
 }

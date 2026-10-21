@@ -41,7 +41,7 @@ public class AdminInicial implements CommandLineRunner {
             return;
         }
         registrarUsuario.registrarEmpleado(new RegistrarEmpleadoCommand(
-                "Administrador KAIRÓS", email, password, Rol.ADMINISTRADOR, null, null));
+                "Administrador KAIRÓS", email, password, Rol.ADMINISTRADOR, null, null, null));
         log.info("Administrador inicial creado: {}", email);
     }
 }

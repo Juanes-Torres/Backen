@@ -17,12 +17,13 @@ public class Usuario {
     private final Rol rol;
     private String telefono;
     private Long idAlmacen;
+    private final Long idEmpresa;
     private final LocalDate fechaRegistro;
     private boolean activo;
 
     /** Reconstruye un usuario que YA existe en la base de datos. */
     public Usuario(Long id, String nombre, String email, String passwordHash, Rol rol,
-                   String telefono, Long idAlmacen, LocalDate fechaRegistro, boolean activo) {
+                   String telefono, Long idAlmacen, Long idEmpresa, LocalDate fechaRegistro, boolean activo) {
         this.id = id;
         this.nombre = nombre == null ? null : nombre.trim();
         this.email = email == null ? null : email.trim().toLowerCase();
@@ -30,16 +31,23 @@ public class Usuario {
         this.rol = rol;
         this.telefono = telefono;
         this.idAlmacen = idAlmacen;
+        this.idEmpresa = idEmpresa;
         this.fechaRegistro = fechaRegistro;
         this.activo = activo;
         validar();
     }
 
-    /** Crea un usuario NUEVO (el id lo asigna la base de datos al guardar). */
+    /** Crea un usuario NUEVO sin empresa (el id lo asigna la base de datos al guardar). */
     public static Usuario nuevo(String nombre, String email, String passwordHash,
                                 Rol rol, String telefono, Long idAlmacen) {
+        return nuevo(nombre, email, passwordHash, rol, telefono, idAlmacen, null);
+    }
+
+    /** Crea un usuario NUEVO que pertenece a una empresa (empleados). */
+    public static Usuario nuevo(String nombre, String email, String passwordHash,
+                                Rol rol, String telefono, Long idAlmacen, Long idEmpresa) {
         return new Usuario(null, nombre, email, passwordHash, rol,
-                telefono, idAlmacen, LocalDate.now(), true);
+                telefono, idAlmacen, idEmpresa, LocalDate.now(), true);
     }
 
     private void validar() {
@@ -57,6 +65,10 @@ public class Usuario {
         }
         if (rol == Rol.VENDEDOR && idAlmacen == null) {
             throw new ReglaNegocioException("Un vendedor debe estar asignado a un almacén");
+        }
+        // El cliente tiene una cuenta global: compra en cualquier empresa
+        if (rol == Rol.CLIENTE && idEmpresa != null) {
+            throw new ReglaNegocioException("Un cliente no pertenece a ninguna empresa");
         }
     }
 
@@ -96,6 +108,7 @@ public class Usuario {
     public Rol getRol() { return rol; }
     public String getTelefono() { return telefono; }
     public Long getIdAlmacen() { return idAlmacen; }
+    public Long getIdEmpresa() { return idEmpresa; }
     public LocalDate getFechaRegistro() { return fechaRegistro; }
     public boolean isActivo() { return activo; }
 }

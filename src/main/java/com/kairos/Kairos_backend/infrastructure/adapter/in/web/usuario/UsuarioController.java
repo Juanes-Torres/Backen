@@ -74,7 +74,7 @@ public class UsuarioController {
     public ResponseEntity<UsuarioResponse> crearEmpleado(@Valid @RequestBody CrearEmpleadoRequest request) {
         Usuario creado = registrarUsuario.registrarEmpleado(new RegistrarEmpleadoCommand(
                 request.nombre(), request.email(), request.password(),
-                request.rol(), request.telefono(), request.idAlmacen()));
+                request.rol(), request.telefono(), request.idAlmacen(), null));   // la empresa del token llega en SCRUM-55
         return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponse.desde(creado));
     }
 

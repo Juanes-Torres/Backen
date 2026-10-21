@@ -11,11 +11,11 @@ public final class UsuarioMapper {
 
     public static UsuarioEntity toEntity(Usuario u) {
         return new UsuarioEntity(u.getId(), u.getNombre(), u.getEmail(), u.getPasswordHash(),
-                u.getRol().name(), u.getTelefono(), u.getIdAlmacen(), u.getFechaRegistro(), u.isActivo());
+                u.getRol().name(), u.getTelefono(), u.getIdAlmacen(), u.getIdEmpresa(), u.getFechaRegistro(), u.isActivo());
     }
 
     public static Usuario toDomain(UsuarioEntity e) {
         return new Usuario(e.getId(), e.getNombre(), e.getEmail(), e.getPasswordHash(),
-                Rol.valueOf(e.getRol()), e.getTelefono(), e.getIdAlmacen(), e.getFechaRegistro(), e.isActivo());
+                Rol.valueOf(e.getRol()), e.getTelefono(), e.getIdAlmacen(), e.getIdEmpresa(), e.getFechaRegistro(), e.isActivo());
     }
 }
