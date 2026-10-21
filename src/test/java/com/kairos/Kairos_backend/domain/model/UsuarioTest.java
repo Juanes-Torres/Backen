@@ -23,6 +23,19 @@ class UsuarioTest {
     }
 
     @Test
+    void crearClienteConEmpresa_lanzaError() {
+        assertThrows(ReglaNegocioException.class, () ->
+                Usuario.nuevo("Ana", "ana@correo.com", "hash", Rol.CLIENTE, null, null, 1L));
+    }
+
+    @Test
+    void crearAdministradorDeEmpresa_guardaLaEmpresa() {
+        Usuario admin = Usuario.nuevo("Ana", "ana@empresa.com", "hash", Rol.ADMINISTRADOR, null, null, 7L);
+
+        assertEquals(7L, admin.getIdEmpresa());
+    }
+
+    @Test
     void crearUsuarioConEmailInvalido_lanzaError() {
         assertThrows(ReglaNegocioException.class, () ->
                 Usuario.nuevo("Ana", "correo-sin-arroba", "hash", Rol.CLIENTE, null, null));
