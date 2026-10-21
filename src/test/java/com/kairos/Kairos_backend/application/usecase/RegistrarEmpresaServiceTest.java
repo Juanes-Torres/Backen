@@ -95,7 +95,12 @@ class RegistrarEmpresaServiceTest {
 
         @Override
         public boolean existePorNit(String nit) {
-            return datos.stream().anyMatch(e -> e.getNit().equals(nit));
+            return buscarPorNit(nit).isPresent();
+        }
+
+        @Override
+        public Optional<Empresa> buscarPorNit(String nit) {
+            return datos.stream().filter(e -> e.getNit().equals(nit)).findFirst();
         }
 
         @Override
@@ -140,6 +145,11 @@ class RegistrarEmpresaServiceTest {
         public List<Usuario> listarTodos() {
             return List.copyOf(datos);
         }
+
+        @Override
+        public List<Usuario> listarPorEmpresa(Long idEmpresa) {
+            return datos.stream().filter(u -> u.perteneceA(idEmpresa)).toList();
+        }
     }
 
     private static class AlmacenRepositoryFalso implements AlmacenRepositoryPort {
@@ -154,13 +164,8 @@ class RegistrarEmpresaServiceTest {
         }
 
         @Override
-        public List<Almacen> listarTodos() {
+        public List<Almacen> listarPorEmpresa(Long idEmpresa) {
             return List.of();
-        }
-
-        @Override
-        public boolean existePorId(Long id) {
-            return false;
         }
     }
 

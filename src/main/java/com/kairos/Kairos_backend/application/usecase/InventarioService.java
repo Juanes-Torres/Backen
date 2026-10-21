@@ -31,22 +31,26 @@ public class InventarioService implements GestionarInventarioUseCase {
     }
 
     @Override
-    public List<InventarioDetalle> listar(Long idAlmacen) {
-        return inventarioRepository.listarDetalle(idAlmacen);
+    public List<InventarioDetalle> listar(Long idEmpresa, Long idAlmacen) {
+        return inventarioRepository.listarDetalle(idEmpresa, idAlmacen);
     }
 
     @Override
-    public List<InventarioDetalle> listarBajoStock() {
-        return inventarioRepository.listarBajoStock();
+    public List<InventarioDetalle> listarBajoStock(Long idEmpresa) {
+        return inventarioRepository.listarBajoStock(idEmpresa);
     }
 
     @Override
-    public InventarioDetalle registrar(Long idProducto, Long idAlmacen, int cantidadInicial, int stockMinimo) {
-        if (idProducto == null || !productoRepository.existePorId(idProducto)) {
+    public InventarioDetalle registrar(Long idEmpresa, Long idProducto, Long idAlmacen,
+                                       int cantidadInicial, int stockMinimo) {
+        // El producto y el almacén deben ser de la misma empresa del token
+        boolean productoDeLaEmpresa = idProducto != null && productoRepository.buscarPorId(idProducto)
+                .filter(producto -> producto.perteneceA(idEmpresa))
+                .isPresent();
+        if (!productoDeLaEmpresa) {
             throw new RecursoNoEncontradoException("No existe un producto con id " + idProducto);
         }
-        Almacen almacen = almacenRepository.buscarPorId(idAlmacen)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No existe un almacén con id " + idAlmacen));
+        Almacen almacen = almacenDeLaEmpresa(idEmpresa, idAlmacen);
         if (!almacen.estaActivo()) {
             throw new ReglaNegocioException("No se puede registrar inventario en un almacén inactivo");
         }
@@ -61,28 +65,50 @@ public class InventarioService implements GestionarInventarioUseCase {
     }
 
     @Override
-    public InventarioDetalle ajustar(Long idInventario, TipoMovimiento tipo, int cantidad) {
-        Inventario inventario = obtener(idInventario);
+    public InventarioDetalle ajustar(Long idEmpresa, Long idInventario, TipoMovimiento tipo, int cantidad) {
+        Inventario inventario = obtener(idEmpresa, idInventario);
         inventario.ajustar(tipo, cantidad);          // el dominio impide el stock negativo
         inventarioRepository.guardar(inventario);
         return detalle(idInventario);
     }
 
     @Override
-    public InventarioDetalle cambiarStockMinimo(Long idInventario, int stockMinimo) {
-        Inventario inventario = obtener(idInventario);
+    public InventarioDetalle cambiarStockMinimo(Long idEmpresa, Long idInventario, int stockMinimo) {
+        Inventario inventario = obtener(idEmpresa, idInventario);
         inventario.cambiarStockMinimo(stockMinimo);
         inventarioRepository.guardar(inventario);
         return detalle(idInventario);
     }
 
-    private Inventario obtener(Long id) {
-        return inventarioRepository.buscarPorId(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No existe un registro de inventario con id " + id));
+    /** El inventario es de la empresa dueña de su almacén. Si es de otra, se responde 404. */
+    private Inventario obtener(Long idEmpresa, Long id) {
+        Inventario inventario = inventarioRepository.buscarPorId(id)
+                .orElseThrow(() -> inventarioNoEncontrado(id));
+        boolean deLaEmpresa = almacenRepository.buscarPorId(inventario.getIdAlmacen())
+                .filter(almacen -> almacen.perteneceA(idEmpresa))
+                .isPresent();
+        if (!deLaEmpresa) {
+            throw inventarioNoEncontrado(id);
+        }
+        return inventario;
+    }
+
+    private Almacen almacenDeLaEmpresa(Long idEmpresa, Long idAlmacen) {
+        RecursoNoEncontradoException noExiste =
+                new RecursoNoEncontradoException("No existe un almacén con id " + idAlmacen);
+        if (idAlmacen == null) {
+            throw noExiste;
+        }
+        return almacenRepository.buscarPorId(idAlmacen)
+                .filter(almacen -> almacen.perteneceA(idEmpresa))
+                .orElseThrow(() -> noExiste);
     }
 
     private InventarioDetalle detalle(Long id) {
-        return inventarioRepository.buscarDetallePorId(id)
-                .orElseThrow(() -> new RecursoNoEncontradoException("No existe un registro de inventario con id " + id));
+        return inventarioRepository.buscarDetallePorId(id).orElseThrow(() -> inventarioNoEncontrado(id));
+    }
+
+    private static RecursoNoEncontradoException inventarioNoEncontrado(Long id) {
+        return new RecursoNoEncontradoException("No existe un registro de inventario con id " + id);
     }
 }

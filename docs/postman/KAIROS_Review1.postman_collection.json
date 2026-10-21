@@ -373,7 +373,37 @@
           ]
         },
         {
-          "name": "Buscar usuario por id (admin)",
+          "name": "Buscar empleado por id (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/usuarios/{{idVendedor}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "{{idVendedor}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin NO ve a un cliente (404, cada empresa ve solo lo suyo)",
           "request": {
             "method": "GET",
             "header": [],
@@ -396,26 +426,26 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"Código 404\", () => pm.response.to.have.status(404));"
                 ]
               }
             }
           ]
         },
         {
-          "name": "Desactivar usuario (admin)",
+          "name": "Desactivar empleado (admin)",
           "request": {
             "method": "PATCH",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/usuarios/{{idCliente}}/desactivar",
+              "raw": "{{baseUrl}}/api/usuarios/{{idVendedor}}/desactivar",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "usuarios",
-                "{{idCliente}}",
+                "{{idVendedor}}",
                 "desactivar"
               ]
             },
@@ -434,19 +464,19 @@
           ]
         },
         {
-          "name": "Activar usuario (admin)",
+          "name": "Activar empleado (admin)",
           "request": {
             "method": "PATCH",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/usuarios/{{idCliente}}/activar",
+              "raw": "{{baseUrl}}/api/usuarios/{{idVendedor}}/activar",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "usuarios",
-                "{{idCliente}}",
+                "{{idVendedor}}",
                 "activar"
               ]
             },

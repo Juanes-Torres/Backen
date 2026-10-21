@@ -8,12 +8,12 @@ import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.Reg
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarEmpleadoCommand;
 import com.kairos.Kairos_backend.domain.model.Usuario;
 import com.kairos.Kairos_backend.infrastructure.adapter.in.web.empresa.EmpresaResponse;
+import com.kairos.Kairos_backend.infrastructure.security.UsuarioAutenticado;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,64 +66,53 @@ public class UsuarioController {
 
     /** Datos del usuario que tiene la sesión iniciada. */
     @GetMapping("/me")
-    public UsuarioResponse miPerfil(Authentication authentication) {
-        return UsuarioResponse.desde(buscarUsuario.buscarPorEmail(authentication.getName()));
+    public UsuarioResponse miPerfil(@AuthenticationPrincipal UsuarioAutenticado yo) {
+        return UsuarioResponse.desde(buscarUsuario.buscarPorEmail(yo.email()));
     }
 
-    /** Solo ADMINISTRADOR: crear vendedores u otros administradores. */
+    /** Solo ADMINISTRADOR: crea vendedores u otros administradores en SU empresa. */
     @PostMapping("/empleados")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<UsuarioResponse> crearEmpleado(@Valid @RequestBody CrearEmpleadoRequest request) {
+    public ResponseEntity<UsuarioResponse> crearEmpleado(@Valid @RequestBody CrearEmpleadoRequest request,
+                                                         @AuthenticationPrincipal UsuarioAutenticado yo) {
         Usuario creado = registrarUsuario.registrarEmpleado(new RegistrarEmpleadoCommand(
                 request.nombre(), request.email(), request.password(),
-                request.rol(), request.telefono(), request.idAlmacen(), null));   // la empresa del token llega en SCRUM-55
+                request.rol(), request.telefono(), request.idAlmacen(), yo.idEmpresa()));
         return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponse.desde(creado));
     }
 
-    /** Solo ADMINISTRADOR: listar todos los usuarios. */
+    /** Solo ADMINISTRADOR: los usuarios de SU empresa. */
     @GetMapping
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public List<UsuarioResponse> listar() {
-        return buscarUsuario.listar().stream().map(UsuarioResponse::desde).toList();
+    public List<UsuarioResponse> listar(@AuthenticationPrincipal UsuarioAutenticado yo) {
+        return buscarUsuario.listar(yo.comoSolicitante()).stream().map(UsuarioResponse::desde).toList();
     }
 
-    /** ADMINISTRADOR ve a cualquiera; los demás solo a sí mismos. */
+    /** Cada uno se ve a sí mismo; el ADMINISTRADOR, a los de su empresa; el SUPERADMIN, a los clientes. */
     @GetMapping("/{id}")
-    public UsuarioResponse buscarPorId(@PathVariable Long id, Authentication authentication) {
-        validarPropietarioOAdmin(id, authentication);
-        return UsuarioResponse.desde(buscarUsuario.buscarPorId(id));
+    public UsuarioResponse buscarPorId(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado yo) {
+        return UsuarioResponse.desde(buscarUsuario.buscarPorId(yo.comoSolicitante(), id));
     }
 
-    /** ADMINISTRADOR modifica a cualquiera; los demás solo a sí mismos. */
+    /** Cada uno se modifica a sí mismo; el ADMINISTRADOR, además, a los de su empresa. */
     @PutMapping("/{id}")
     public UsuarioResponse actualizar(@PathVariable Long id,
                                       @Valid @RequestBody ActualizarUsuarioRequest request,
-                                      Authentication authentication) {
-        validarPropietarioOAdmin(id, authentication);
-        return UsuarioResponse.desde(actualizarUsuario.actualizarDatos(id, request.nombre(), request.telefono()));
+                                      @AuthenticationPrincipal UsuarioAutenticado yo) {
+        return UsuarioResponse.desde(actualizarUsuario.actualizarDatos(
+                yo.comoSolicitante(), id, request.nombre(), request.telefono()));
     }
 
+    /** ADMINISTRADOR: empleados de su empresa. SUPERADMIN: clientes. */
     @PatchMapping("/{id}/desactivar")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public UsuarioResponse desactivar(@PathVariable Long id) {
-        return UsuarioResponse.desde(actualizarUsuario.cambiarEstado(id, false));
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERADMIN')")
+    public UsuarioResponse desactivar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado yo) {
+        return UsuarioResponse.desde(actualizarUsuario.cambiarEstado(yo.comoSolicitante(), id, false));
     }
 
     @PatchMapping("/{id}/activar")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public UsuarioResponse activar(@PathVariable Long id) {
-        return UsuarioResponse.desde(actualizarUsuario.cambiarEstado(id, true));
-    }
-
-    private void validarPropietarioOAdmin(Long id, Authentication authentication) {
-        boolean esAdmin = authentication.getAuthorities().stream()
-                .anyMatch(a -> "ROLE_ADMINISTRADOR".equals(a.getAuthority()));
-        if (esAdmin) {
-            return;
-        }
-        Usuario actual = buscarUsuario.buscarPorEmail(authentication.getName());
-        if (!actual.getId().equals(id)) {
-            throw new AccessDeniedException("Solo puede consultar o modificar su propio usuario");
-        }
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','SUPERADMIN')")
+    public UsuarioResponse activar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado yo) {
+        return UsuarioResponse.desde(actualizarUsuario.cambiarEstado(yo.comoSolicitante(), id, true));
     }
 }
