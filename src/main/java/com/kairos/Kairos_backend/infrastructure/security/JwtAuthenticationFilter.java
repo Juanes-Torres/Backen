@@ -1,5 +1,6 @@
 package com.kairos.Kairos_backend.infrastructure.security;
 
+import com.kairos.Kairos_backend.domain.model.Rol;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -43,12 +44,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(PREFIJO.length());
             try {
                 Claims claims = jwtService.leerClaims(token);
-                String email = claims.getSubject();
                 String rol = claims.get("rol", String.class);
+                Number idEmpresa = claims.get("idEmpresa", Number.class);   // solo empleados
+                var usuario = new UsuarioAutenticado(
+                        claims.get("id", Number.class).longValue(),
+                        claims.getSubject(),
+                        Rol.valueOf(rol),
+                        idEmpresa == null ? null : idEmpresa.longValue());
 
                 // "ROLE_ADMINISTRADOR", "ROLE_VENDEDOR"... es lo que usa hasRole(...)
                 var autenticacion = new UsernamePasswordAuthenticationToken(
-                        email, null, List.of(new SimpleGrantedAuthority("ROLE_" + rol)));
+                        usuario, null, List.of(new SimpleGrantedAuthority("ROLE_" + rol)));
                 SecurityContextHolder.getContext().setAuthentication(autenticacion);
 
             } catch (JwtException | IllegalArgumentException e) {

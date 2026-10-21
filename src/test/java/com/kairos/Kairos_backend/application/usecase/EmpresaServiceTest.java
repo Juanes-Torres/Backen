@@ -79,7 +79,13 @@ class EmpresaServiceTest {
 
         @Override
         public boolean existePorNit(String nit) {
-            return datos.values().stream().anyMatch(e -> e.getNit().equals(nit));
+            return buscarPorNit(nit).isPresent();
+        }
+
+        @Override
+        public Optional<Empresa> buscarPorNit(String nit) {
+            return datos.values().stream().filter(e -> e.getNit().equals(nit)).findFirst()
+                    .map(EmpresaRepositoryFalso::copia);
         }
 
         @Override

@@ -28,15 +28,19 @@ public class AlmacenEntity {
     @Column(name = "estado", nullable = false, length = 20)
     private String estado;
 
+    @Column(name = "id_empresa", nullable = false)
+    private Long idEmpresa;
+
     protected AlmacenEntity() {
     }
 
-    public AlmacenEntity(Long id, String nombre, String ciudad, String direccion, String estado) {
+    public AlmacenEntity(Long id, String nombre, String ciudad, String direccion, String estado, Long idEmpresa) {
         this.id = id;
         this.nombre = nombre;
         this.ciudad = ciudad;
         this.direccion = direccion;
         this.estado = estado;
+        this.idEmpresa = idEmpresa;
     }
 
     public Long getId() { return id; }
@@ -44,4 +48,5 @@ public class AlmacenEntity {
     public String getCiudad() { return ciudad; }
     public String getDireccion() { return direccion; }
     public String getEstado() { return estado; }
+    public Long getIdEmpresa() { return idEmpresa; }
 }

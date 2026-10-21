@@ -11,7 +11,5 @@ public interface AlmacenRepositoryPort {
 
     Optional<Almacen> buscarPorId(Long id);
 
-    List<Almacen> listarTodos();
-
-    boolean existePorId(Long id);
+    List<Almacen> listarPorEmpresa(Long idEmpresa);
 }

@@ -72,8 +72,11 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase {
             throw new RecursoDuplicadoException("Ya existe un usuario con el email " + email);
         }
 
-        // 3. Si trae almacén, el almacén debe existir
-        if (idAlmacen != null && !almacenRepository.existePorId(idAlmacen)) {
+        // 3. Si trae almacén, debe existir y ser de la misma empresa del empleado
+        boolean almacenValido = idAlmacen == null || almacenRepository.buscarPorId(idAlmacen)
+                .filter(almacen -> almacen.perteneceA(idEmpresa))
+                .isPresent();
+        if (!almacenValido) {
             throw new RecursoNoEncontradoException("No existe un almacén con id " + idAlmacen);
         }
 

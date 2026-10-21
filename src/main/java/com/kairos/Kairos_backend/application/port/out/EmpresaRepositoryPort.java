@@ -17,6 +17,8 @@ public interface EmpresaRepositoryPort {
 
     boolean existePorNit(String nit);
 
+    Optional<Empresa> buscarPorNit(String nit);
+
     List<Empresa> listarPorEstado(EstadoEmpresa estado);
 
     List<Empresa> listarTodas();

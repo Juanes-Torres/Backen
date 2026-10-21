@@ -29,12 +29,8 @@ public class AlmacenPersistenceAdapter implements AlmacenRepositoryPort {
     }
 
     @Override
-    public List<Almacen> listarTodos() {
-        return jpaRepository.findAllByOrderByNombreAsc().stream().map(AlmacenMapper::toDomain).toList();
-    }
-
-    @Override
-    public boolean existePorId(Long id) {
-        return jpaRepository.existsById(id);
+    public List<Almacen> listarPorEmpresa(Long idEmpresa) {
+        return jpaRepository.findByIdEmpresaOrderByNombreAsc(idEmpresa).stream()
+                .map(AlmacenMapper::toDomain).toList();
     }
 }

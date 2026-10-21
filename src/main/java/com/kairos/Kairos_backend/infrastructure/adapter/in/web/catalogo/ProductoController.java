@@ -2,10 +2,12 @@ package com.kairos.Kairos_backend.infrastructure.adapter.in.web.catalogo;
 
 import com.kairos.Kairos_backend.application.port.in.GestionarProductosUseCase;
 import com.kairos.Kairos_backend.application.port.in.GestionarProductosUseCase.ProductoCommand;
+import com.kairos.Kairos_backend.infrastructure.security.UsuarioAutenticado;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,21 +44,23 @@ public class ProductoController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<ProductoResponse> crear(@Valid @RequestBody ProductoRequest request) {
+    public ResponseEntity<ProductoResponse> crear(@Valid @RequestBody ProductoRequest request,
+                                                  @AuthenticationPrincipal UsuarioAutenticado yo) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ProductoResponse.desde(productos.crear(aCommand(request))));
+                .body(ProductoResponse.desde(productos.crear(yo.idEmpresa(), aCommand(request))));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ProductoResponse actualizar(@PathVariable Long id, @Valid @RequestBody ProductoRequest request) {
-        return ProductoResponse.desde(productos.actualizar(id, aCommand(request)));
+    public ProductoResponse actualizar(@PathVariable Long id, @Valid @RequestBody ProductoRequest request,
+                                       @AuthenticationPrincipal UsuarioAutenticado yo) {
+        return ProductoResponse.desde(productos.actualizar(yo.idEmpresa(), id, aCommand(request)));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMINISTRADOR')")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        productos.eliminar(id);
+    public ResponseEntity<Void> eliminar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado yo) {
+        productos.eliminar(yo.idEmpresa(), id);
         return ResponseEntity.noContent().build();   // 204: se borró y no hay nada que devolver
     }
 

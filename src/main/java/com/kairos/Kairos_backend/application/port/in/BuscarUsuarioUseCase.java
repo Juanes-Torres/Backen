@@ -6,12 +6,14 @@ import java.util.List;
 
 /**
  * CASO DE USO: consultar usuarios.
+ * Cada uno se ve a sí mismo; un administrador ve además a los usuarios de SU empresa.
  */
 public interface BuscarUsuarioUseCase {
 
-    Usuario buscarPorId(Long id);
+    Usuario buscarPorId(Solicitante solicitante, Long id);
 
     Usuario buscarPorEmail(String email);
 
-    List<Usuario> listar();
+    /** Los usuarios de la empresa del administrador. */
+    List<Usuario> listar(Solicitante solicitante);
 }

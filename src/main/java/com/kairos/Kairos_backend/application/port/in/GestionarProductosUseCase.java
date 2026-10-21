@@ -7,6 +7,7 @@ import java.util.List;
 
 /**
  * CASO DE USO: administrar y consultar el catálogo de productos.
+ * La consulta es pública; crear, cambiar y borrar es solo dentro de la empresa del token.
  */
 public interface GestionarProductosUseCase {
 
@@ -14,11 +15,11 @@ public interface GestionarProductosUseCase {
 
     Producto obtener(Long id);
 
-    Producto crear(ProductoCommand command);
+    Producto crear(Long idEmpresa, ProductoCommand command);
 
-    Producto actualizar(Long id, ProductoCommand command);
+    Producto actualizar(Long idEmpresa, Long id, ProductoCommand command);
 
-    void eliminar(Long id);
+    void eliminar(Long idEmpresa, Long id);
 
     record ProductoCommand(
             String nombre,

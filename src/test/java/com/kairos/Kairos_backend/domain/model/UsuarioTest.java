@@ -29,6 +29,14 @@ class UsuarioTest {
     }
 
     @Test
+    void crearEmpleadoSinEmpresa_lanzaError() {
+        assertThrows(ReglaNegocioException.class, () ->
+                Usuario.nuevo("Ana", "ana@kairos.com", "hash", Rol.VENDEDOR, null, 5L, null));
+        assertThrows(ReglaNegocioException.class, () ->
+                Usuario.nuevo("Ana", "ana@kairos.com", "hash", Rol.ADMINISTRADOR, null, null, null));
+    }
+
+    @Test
     void crearSuperadminConEmpresa_lanzaError() {
         assertThrows(ReglaNegocioException.class, () ->
                 Usuario.nuevo("Root", "root@kairos.com", "hash", Rol.SUPERADMIN, null, null, 1L));

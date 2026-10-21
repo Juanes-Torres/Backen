@@ -15,10 +15,10 @@ public interface InventarioRepositoryPort {
 
     boolean existePorProducto(Long idProducto);
 
-    /** Si idAlmacen es null, devuelve el inventario de todos los almacenes. */
-    List<InventarioDetalle> listarDetalle(Long idAlmacen);
+    /** Solo los almacenes de la empresa. Si idAlmacen es null, devuelve todos sus almacenes. */
+    List<InventarioDetalle> listarDetalle(Long idEmpresa, Long idAlmacen);
 
-    List<InventarioDetalle> listarBajoStock();
+    List<InventarioDetalle> listarBajoStock(Long idEmpresa);
 
     Optional<InventarioDetalle> buscarDetallePorId(Long id);
 }

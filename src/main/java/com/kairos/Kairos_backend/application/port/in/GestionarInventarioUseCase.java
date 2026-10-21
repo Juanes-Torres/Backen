@@ -6,17 +6,18 @@ import com.kairos.Kairos_backend.domain.model.TipoMovimiento;
 import java.util.List;
 
 /**
- * CASO DE USO: controlar el stock de cada producto en cada almacén.
+ * CASO DE USO: controlar el stock de cada producto en cada almacén de UNA empresa.
+ * idEmpresa sale del token: el inventario de otra empresa responde 404.
  */
 public interface GestionarInventarioUseCase {
 
-    List<InventarioDetalle> listar(Long idAlmacen);
+    List<InventarioDetalle> listar(Long idEmpresa, Long idAlmacen);
 
-    List<InventarioDetalle> listarBajoStock();
+    List<InventarioDetalle> listarBajoStock(Long idEmpresa);
 
-    InventarioDetalle registrar(Long idProducto, Long idAlmacen, int cantidadInicial, int stockMinimo);
+    InventarioDetalle registrar(Long idEmpresa, Long idProducto, Long idAlmacen, int cantidadInicial, int stockMinimo);
 
-    InventarioDetalle ajustar(Long idInventario, TipoMovimiento tipo, int cantidad);
+    InventarioDetalle ajustar(Long idEmpresa, Long idInventario, TipoMovimiento tipo, int cantidad);
 
-    InventarioDetalle cambiarStockMinimo(Long idInventario, int stockMinimo);
+    InventarioDetalle cambiarStockMinimo(Long idEmpresa, Long idInventario, int stockMinimo);
 }

@@ -66,6 +66,10 @@ public class Usuario {
         if (rol == Rol.VENDEDOR && idAlmacen == null) {
             throw new ReglaNegocioException("Un vendedor debe estar asignado a un almacén");
         }
+        // Vendedores y administradores trabajan para una empresa
+        if ((rol == Rol.VENDEDOR || rol == Rol.ADMINISTRADOR) && idEmpresa == null) {
+            throw new ReglaNegocioException("Un empleado debe pertenecer a una empresa");
+        }
         // El cliente tiene una cuenta global: compra en cualquier empresa
         if (rol == Rol.CLIENTE && idEmpresa != null) {
             throw new ReglaNegocioException("Un cliente no pertenece a ninguna empresa");
@@ -101,6 +105,10 @@ public class Usuario {
 
     public boolean esAdministrador() {
         return rol == Rol.ADMINISTRADOR;
+    }
+
+    public boolean perteneceA(Long otraEmpresa) {
+        return idEmpresa != null && idEmpresa.equals(otraEmpresa);
     }
 
     // ----- Getters -----

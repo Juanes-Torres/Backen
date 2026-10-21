@@ -35,6 +35,11 @@ public class EmpresaPersistenceAdapter implements EmpresaRepositoryPort {
     }
 
     @Override
+    public Optional<Empresa> buscarPorNit(String nit) {
+        return jpaRepository.findByNit(nit == null ? null : nit.trim()).map(EmpresaMapper::toDomain);
+    }
+
+    @Override
     public List<Empresa> listarPorEstado(EstadoEmpresa estado) {
         return jpaRepository.findByEstadoOrderByFechaRegistroAsc(estado.name()).stream()
                 .map(EmpresaMapper::toDomain).toList();

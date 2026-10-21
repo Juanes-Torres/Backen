@@ -40,15 +40,15 @@ public class InventarioPersistenceAdapter implements InventarioRepositoryPort {
     }
 
     @Override
-    public List<InventarioDetalle> listarDetalle(Long idAlmacen) {
+    public List<InventarioDetalle> listarDetalle(Long idEmpresa, Long idAlmacen) {
         return idAlmacen == null
-                ? jpaRepository.listarDetalle()
-                : jpaRepository.listarDetallePorAlmacen(idAlmacen);
+                ? jpaRepository.listarDetalle(idEmpresa)
+                : jpaRepository.listarDetallePorAlmacen(idEmpresa, idAlmacen);
     }
 
     @Override
-    public List<InventarioDetalle> listarBajoStock() {
-        return jpaRepository.listarBajoStock();
+    public List<InventarioDetalle> listarBajoStock(Long idEmpresa) {
+        return jpaRepository.listarBajoStock(idEmpresa);
     }
 
     @Override

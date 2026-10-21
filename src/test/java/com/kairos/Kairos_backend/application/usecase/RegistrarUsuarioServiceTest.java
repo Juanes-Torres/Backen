@@ -109,7 +109,7 @@ class RegistrarUsuarioServiceTest {
     }
 
     private RegistrarEmpleadoCommand empleado(Rol rol) {
-        return new RegistrarEmpleadoCommand("Luis Gómez", "luis@kairos.com", "secreta123", rol, null, null, null);
+        return new RegistrarEmpleadoCommand("Luis Gómez", "luis@kairos.com", "secreta123", rol, null, null, 1L);
     }
 
     // ===== Clases falsas (implementaciones simples de los puertos) =====
@@ -156,6 +156,11 @@ class RegistrarUsuarioServiceTest {
         public List<Usuario> listarTodos() {
             return List.copyOf(datos);
         }
+
+        @Override
+        public List<Usuario> listarPorEmpresa(Long idEmpresa) {
+            return datos.stream().filter(u -> u.perteneceA(idEmpresa)).toList();
+        }
     }
 
     /** No hay almacenes: estas pruebas registran clientes. */
@@ -171,13 +176,8 @@ class RegistrarUsuarioServiceTest {
         }
 
         @Override
-        public List<Almacen> listarTodos() {
+        public List<Almacen> listarPorEmpresa(Long idEmpresa) {
             return List.of();
-        }
-
-        @Override
-        public boolean existePorId(Long id) {
-            return false;
         }
     }
 

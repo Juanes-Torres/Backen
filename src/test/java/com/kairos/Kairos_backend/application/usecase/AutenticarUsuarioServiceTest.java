@@ -130,6 +130,11 @@ class AutenticarUsuarioServiceTest {
         public List<Usuario> listarTodos() {
             return List.copyOf(datos);
         }
+
+        @Override
+        public List<Usuario> listarPorEmpresa(Long idEmpresa) {
+            return datos.stream().filter(u -> u.perteneceA(idEmpresa)).toList();
+        }
     }
 
     private static class EmpresaRepositoryFalso implements EmpresaRepositoryPort {
@@ -153,7 +158,12 @@ class AutenticarUsuarioServiceTest {
 
         @Override
         public boolean existePorNit(String nit) {
-            return datos.stream().anyMatch(e -> e.getNit().equals(nit));
+            return buscarPorNit(nit).isPresent();
+        }
+
+        @Override
+        public Optional<Empresa> buscarPorNit(String nit) {
+            return datos.stream().filter(e -> e.getNit().equals(nit)).findFirst();
         }
 
         @Override
