@@ -102,6 +102,11 @@ class RegistrarEmpresaServiceTest {
         public List<Empresa> listarPorEstado(EstadoEmpresa estado) {
             return datos.stream().filter(e -> e.getEstado() == estado).toList();
         }
+
+        @Override
+        public List<Empresa> listarTodas() {
+            return List.copyOf(datos);
+        }
     }
 
     private static class UsuarioRepositoryFalso implements UsuarioRepositoryPort {

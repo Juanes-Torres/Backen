@@ -31,7 +31,7 @@ El frontend está en **otro repositorio** (`Juanes-Torres/Frontend`), que tiene 
 ```powershell
 # 1. Solo la primera vez: crear el archivo de secretos
 copy .env.example .env
-#    ...y cambia DB_PASSWORD, JWT_SECRET (mínimo 32 caracteres) y ADMIN_PASSWORD
+#    ...y cambia DB_PASSWORD, JWT_SECRET (mínimo 32 caracteres), ADMIN_PASSWORD y SUPERADMIN_PASSWORD
 
 # 2. Construir y arrancar (la primera vez tarda varios minutos descargando todo)
 docker compose up --build
@@ -42,6 +42,7 @@ Cuando en los logs aparezca `Started KairosBackendApplication`:
 - API: http://localhost:8080
 - Swagger: http://localhost:8080/swagger-ui.html
 - Administrador: el `ADMIN_EMAIL` y el `ADMIN_PASSWORD` de tu `.env`
+- Superadministrador (aprueba empresas): el `SUPERADMIN_EMAIL` y el `SUPERADMIN_PASSWORD` de tu `.env`
 
 ## En otro PC, sin descargar el código
 
@@ -50,7 +51,7 @@ Cuando en los logs aparezca `Started KairosBackendApplication`:
 1. Instala y abre Docker Desktop (no hace falta Git, Java ni Node).
 2. Crea una carpeta y copia ahí solo `docker-compose.github.yml` con el nombre `docker-compose.yml`.
 3. En esa carpeta: `docker compose up --build -d` (la primera vez tarda varios minutos).
-4. Abre http://localhost:5173 y entra con `admin@kairos.com` / `Admin123*`.
+4. Abre http://localhost:5173 y entra con `admin@kairos.com` / `Admin123*`. El superadministrador es `superadmin@kairos.com` / `Superadmin123*`.
 
 - La base de datos empieza nueva en ese PC (tablas y datos iniciales de Flyway).
 - Para cambiar las claves, crea un `.env` junto al archivo con las variables de `.env.example`. Para algo público o en producción, cámbialas siempre.

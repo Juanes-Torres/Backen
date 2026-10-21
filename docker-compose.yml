@@ -48,6 +48,8 @@ services:
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@kairos.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Falta ADMIN_PASSWORD en el archivo .env}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-superadmin@kairos.com}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:?Falta SUPERADMIN_PASSWORD en el archivo .env}
       # Correo de bienvenida (opcional: si no se llena, queda apagado)
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       MAIL_USERNAME: ${MAIL_USERNAME:-}

@@ -10,4 +10,6 @@ public interface EmpresaJpaRepository extends JpaRepository<EmpresaEntity, Long>
     boolean existsByNit(String nit);
 
     List<EmpresaEntity> findByEstadoOrderByFechaRegistroAsc(String estado);
+
+    List<EmpresaEntity> findAllByOrderByFechaRegistroAsc();
 }

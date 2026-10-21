@@ -39,4 +39,10 @@ public class EmpresaPersistenceAdapter implements EmpresaRepositoryPort {
         return jpaRepository.findByEstadoOrderByFechaRegistroAsc(estado.name()).stream()
                 .map(EmpresaMapper::toDomain).toList();
     }
+
+    @Override
+    public List<Empresa> listarTodas() {
+        return jpaRepository.findAllByOrderByFechaRegistroAsc().stream()
+                .map(EmpresaMapper::toDomain).toList();
+    }
 }

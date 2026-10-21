@@ -72,6 +72,12 @@ public class Empresa {
         this.estado = EstadoEmpresa.SUSPENDIDA;
     }
 
+    /** Una empresa suspendida puede volver a operar. */
+    public void reactivar() {
+        exigirEstado(EstadoEmpresa.SUSPENDIDA, "Solo se puede reactivar una empresa suspendida");
+        this.estado = EstadoEmpresa.ACTIVA;
+    }
+
     /** Solo una empresa ACTIVA puede operar: sus empleados inician sesión y su catálogo es visible. */
     public boolean estaActiva() {
         return estado == EstadoEmpresa.ACTIVA;
