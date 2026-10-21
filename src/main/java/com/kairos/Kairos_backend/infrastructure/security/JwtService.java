@@ -32,10 +32,15 @@ public class JwtService implements TokenPort {
     @Override
     public String generarToken(Usuario usuario) {
         Date ahora = new Date();
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(usuario.getEmail())
                 .claim("rol", usuario.getRol().name())
-                .claim("id", usuario.getId())
+                .claim("id", usuario.getId());
+        // Solo los empleados tienen empresa: con ella se filtran sus datos (SCRUM-55)
+        if (usuario.getIdEmpresa() != null) {
+            builder.claim("idEmpresa", usuario.getIdEmpresa());
+        }
+        return builder
                 .issuedAt(ahora)
                 .expiration(new Date(ahora.getTime() + expiracionMs))
                 .signWith(clave)
