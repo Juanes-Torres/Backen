@@ -55,6 +55,18 @@ class EmpresaTest {
     }
 
     @Test
+    void unaEmpresaSuspendidaSePuedeReactivar() {
+        Empresa empresa = nueva();
+        assertThrows(ReglaNegocioException.class, empresa::reactivar);   // pendiente: no
+
+        empresa.aprobar();
+        empresa.suspender();
+        empresa.reactivar();
+
+        assertTrue(empresa.estaActiva());
+    }
+
+    @Test
     void sinNitONombre_lanzaError() {
         assertThrows(ReglaNegocioException.class,
                 () -> Empresa.nueva("TecnoMundo", " ", "a@b.com", null));

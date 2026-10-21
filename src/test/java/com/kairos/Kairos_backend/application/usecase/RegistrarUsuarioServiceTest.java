@@ -87,6 +87,23 @@ class RegistrarUsuarioServiceTest {
         assertEquals(Rol.ADMINISTRADOR, creado.getRol());
     }
 
+    @Test
+    void unAdministradorNoPuedeCrearUnSuperadmin() {
+        ReglaNegocioException error = assertThrows(ReglaNegocioException.class,
+                () -> servicio.registrarEmpleado(empleado(Rol.SUPERADMIN)));
+
+        assertEquals("No se puede crear un superadministrador", error.getMessage());
+        assertTrue(usuarios.listarTodos().isEmpty());
+    }
+
+    @Test
+    void alArrancarSeCreaElSuperadminSinEmpresa() {
+        Usuario superadmin = servicio.registrarSuperadmin("Root", "root@kairos.com", "secreta123");
+
+        assertEquals(Rol.SUPERADMIN, superadmin.getRol());
+        assertEquals(null, superadmin.getIdEmpresa());
+    }
+
     private RegistrarClienteCommand comando(String email) {
         return new RegistrarClienteCommand("Ana Ruiz", email, "secreta123", null);
     }
