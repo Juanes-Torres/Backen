@@ -36,7 +36,7 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase {
     public Usuario registrarCliente(RegistrarClienteCommand command) {
         // Regla: el registro público siempre crea un CLIENTE y sin almacén
         return registrar(command.nombre(), command.email(), command.password(),
-                Rol.CLIENTE, command.telefono(), null);
+                Rol.CLIENTE, command.telefono(), null, null);
     }
 
     @Override
@@ -46,12 +46,12 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase {
             throw new ReglaNegocioException("Los clientes se registran por POST /api/usuarios");
         }
         return registrar(command.nombre(), command.email(), command.password(),
-                command.rol(), command.telefono(), command.idAlmacen());
+                command.rol(), command.telefono(), command.idAlmacen(), command.idEmpresa());
     }
 
     /** Pasos comunes a todo registro. */
     private Usuario registrar(String nombre, String email, String password,
-                              Rol rol, String telefono, Long idAlmacen) {
+                              Rol rol, String telefono, Long idAlmacen, Long idEmpresa) {
         // 1. La contraseña en texto plano solo existe aquí: validarla antes de cifrarla
         if (password == null || password.length() < LONGITUD_MINIMA_PASSWORD) {
             throw new ReglaNegocioException(
@@ -75,7 +75,8 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase {
                 passwordEncoder.cifrar(password),
                 rol,
                 telefono,
-                idAlmacen
+                idAlmacen,
+                idEmpresa
         );
 
         // 5. Guardar

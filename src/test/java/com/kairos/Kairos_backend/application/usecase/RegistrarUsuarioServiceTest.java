@@ -92,7 +92,7 @@ class RegistrarUsuarioServiceTest {
     }
 
     private RegistrarEmpleadoCommand empleado(Rol rol) {
-        return new RegistrarEmpleadoCommand("Luis Gómez", "luis@kairos.com", "secreta123", rol, null, null);
+        return new RegistrarEmpleadoCommand("Luis Gómez", "luis@kairos.com", "secreta123", rol, null, null, null);
     }
 
     // ===== Clases falsas (implementaciones simples de los puertos) =====
@@ -114,7 +114,7 @@ class RegistrarUsuarioServiceTest {
         @Override
         public Usuario guardar(Usuario u) {
             Usuario conId = new Usuario((long) datos.size() + 1, u.getNombre(), u.getEmail(),
-                    u.getPasswordHash(), u.getRol(), u.getTelefono(), u.getIdAlmacen(),
+                    u.getPasswordHash(), u.getRol(), u.getTelefono(), u.getIdAlmacen(), u.getIdEmpresa(),
                     u.getFechaRegistro(), u.isActivo());
             datos.add(conId);
             return conId;
