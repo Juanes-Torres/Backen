@@ -27,9 +27,11 @@ $porDefectoDesarrollo = @{
     CORS_ORIGINS   = 'http://localhost:5173'
     ADMIN_EMAIL    = 'admin@kairos.com'
     ADMIN_PASSWORD = 'Admin123*'
+    SUPERADMIN_EMAIL    = 'superadmin@kairos.com'
+    SUPERADMIN_PASSWORD = 'Superadmin123*'
     FRONTEND_URL   = 'http://localhost:5173'
 }
-$variables = 'DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'CORS_ORIGINS', 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'FRONTEND_URL'
+$variables = 'DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'CORS_ORIGINS', 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SUPERADMIN_EMAIL', 'SUPERADMIN_PASSWORD', 'FRONTEND_URL'
 
 # Opcionales en todos los ambientes: correo de bienvenida (si no estan, el correo queda apagado)
 $opcionalesCorreo = 'MAIL_ENABLED', 'MAIL_USERNAME', 'MAIL_PASSWORD'
