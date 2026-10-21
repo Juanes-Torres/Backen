@@ -45,8 +45,17 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase {
         if (command.rol() == Rol.CLIENTE) {
             throw new ReglaNegocioException("Los clientes se registran por POST /api/usuarios");
         }
+        // Regla: el superadministrador no se crea desde la API
+        if (command.rol() == Rol.SUPERADMIN) {
+            throw new ReglaNegocioException("No se puede crear un superadministrador");
+        }
         return registrar(command.nombre(), command.email(), command.password(),
                 command.rol(), command.telefono(), command.idAlmacen(), command.idEmpresa());
+    }
+
+    @Override
+    public Usuario registrarSuperadmin(String nombre, String email, String password) {
+        return registrar(nombre, email, password, Rol.SUPERADMIN, null, null, null);
     }
 
     /** Pasos comunes a todo registro. */

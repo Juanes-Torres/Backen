@@ -12,8 +12,11 @@ public interface RegistrarUsuarioUseCase {
     /** Registro público: siempre crea un CLIENTE. */
     Usuario registrarCliente(RegistrarClienteCommand command);
 
-    /** Lo usa un administrador: crea VENDEDOR o ADMINISTRADOR, nunca CLIENTE. */
+    /** Lo usa un administrador: crea VENDEDOR o ADMINISTRADOR, nunca CLIENTE ni SUPERADMIN. */
     Usuario registrarEmpleado(RegistrarEmpleadoCommand command);
+
+    /** Solo al arrancar la aplicación: crea el superadministrador de la plataforma. */
+    Usuario registrarSuperadmin(String nombre, String email, String password);
 
     /** Datos del registro público (el password llega en texto plano y aquí se cifra). */
     record RegistrarClienteCommand(

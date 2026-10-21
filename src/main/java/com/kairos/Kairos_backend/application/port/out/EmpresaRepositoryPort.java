@@ -18,4 +18,6 @@ public interface EmpresaRepositoryPort {
     boolean existePorNit(String nit);
 
     List<Empresa> listarPorEstado(EstadoEmpresa estado);
+
+    List<Empresa> listarTodas();
 }

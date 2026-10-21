@@ -70,6 +70,10 @@ public class Usuario {
         if (rol == Rol.CLIENTE && idEmpresa != null) {
             throw new ReglaNegocioException("Un cliente no pertenece a ninguna empresa");
         }
+        // El superadministrador es de la plataforma, no de una empresa
+        if (rol == Rol.SUPERADMIN && idEmpresa != null) {
+            throw new ReglaNegocioException("El superadministrador no pertenece a ninguna empresa");
+        }
     }
 
     // ----- Comportamiento del negocio -----
