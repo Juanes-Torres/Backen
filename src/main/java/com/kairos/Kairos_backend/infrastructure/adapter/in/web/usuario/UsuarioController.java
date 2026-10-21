@@ -7,6 +7,7 @@ import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarClienteCommand;
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarEmpleadoCommand;
 import com.kairos.Kairos_backend.domain.model.Usuario;
+import com.kairos.Kairos_backend.infrastructure.adapter.in.web.empresa.EmpresaResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +60,8 @@ public class UsuarioController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         var resultado = autenticarUsuario.autenticar(request.email(), request.password());
-        return new LoginResponse(resultado.token(), "Bearer", UsuarioResponse.desde(resultado.usuario()));
+        var empresa = resultado.empresa() == null ? null : EmpresaResponse.desde(resultado.empresa());
+        return new LoginResponse(resultado.token(), "Bearer", UsuarioResponse.desde(resultado.usuario()), empresa);
     }
 
     /** Datos del usuario que tiene la sesión iniciada. */
