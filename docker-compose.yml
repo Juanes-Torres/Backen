@@ -64,11 +64,16 @@ services:
     build:
       context: ${FRONTEND_PATH:-../../frontend}
       args:
-        # Dirección del backend que usa el NAVEGADOR (no el contenedor):
-        # por eso es localhost y no "backend"
+        # Solo para versiones viejas del frontend que leían la dirección al compilar.
+        # Se puede quitar cuando todas las ramas del frontend usen API_URL.
         VITE_API_URL: http://localhost:${SERVER_PORT:-8080}
     image: kairos-frontend
     container_name: kairos-frontend
+    environment:
+      # Dirección del backend que usa el NAVEGADOR (no el contenedor): por eso es
+      # localhost y no "backend". El frontend la lee al ARRANCAR (12 factores: III),
+      # así la misma imagen sirve para cualquier ambiente.
+      API_URL: ${API_URL:-http://localhost:${SERVER_PORT:-8080}}
     depends_on:
       - backend
     ports:
