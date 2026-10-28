@@ -36,11 +36,6 @@ public class ProductoPersistenceAdapter implements ProductoRepositoryPort {
     }
 
     @Override
-    public boolean existePorId(Long id) {
-        return jpaRepository.existsById(id);
-    }
-
-    @Override
     public void eliminar(Long id) {
         jpaRepository.deleteById(id);
     }

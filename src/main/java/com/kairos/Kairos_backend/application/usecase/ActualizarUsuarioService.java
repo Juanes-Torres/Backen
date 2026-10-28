@@ -36,7 +36,7 @@ public class ActualizarUsuarioService implements ActualizarUsuarioUseCase {
 
     private Usuario obtener(Solicitante solicitante, Long id) {
         return usuarioRepository.buscarPorId(id)
-                .filter(usuario -> BuscarUsuarioService.puedeGestionar(solicitante, usuario))
+                .filter(usuario -> PermisosUsuario.puedeGestionar(solicitante, usuario))
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe un usuario con id " + id));
     }
 }

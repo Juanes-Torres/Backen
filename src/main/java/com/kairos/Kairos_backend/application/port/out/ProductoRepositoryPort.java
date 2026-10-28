@@ -17,7 +17,5 @@ public interface ProductoRepositoryPort {
      */
     List<Producto> buscarEnCatalogo(Long idEmpresa, Long idCategoria, String nombre);
 
-    boolean existePorId(Long id);
-
     void eliminar(Long id);
 }

@@ -1,5 +1,6 @@
 package com.kairos.Kairos_backend.application.usecase;
 
+import com.kairos.Kairos_backend.application.port.in.CrearSuperadminUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase;
 import com.kairos.Kairos_backend.application.port.out.AlmacenRepositoryPort;
 import com.kairos.Kairos_backend.application.port.out.NotificacionPort;
@@ -13,7 +14,7 @@ import com.kairos.Kairos_backend.domain.model.Usuario;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RegistrarUsuarioService implements RegistrarUsuarioUseCase {
+public class RegistrarUsuarioService implements RegistrarUsuarioUseCase, CrearSuperadminUseCase {
 
     private static final int LONGITUD_MINIMA_PASSWORD = 6;
 

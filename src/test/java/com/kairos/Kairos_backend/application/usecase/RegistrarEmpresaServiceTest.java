@@ -141,8 +141,7 @@ class RegistrarEmpresaServiceTest {
             return buscarPorEmail(email).isPresent();
         }
 
-        @Override
-        public List<Usuario> listarTodos() {
+        List<Usuario> listarTodos() {
             return List.copyOf(datos);
         }
 

@@ -137,11 +137,6 @@ class ProductoServiceTest {
         }
 
         @Override
-        public boolean existePorId(Long id) {
-            return buscarPorId(id).isPresent();
-        }
-
-        @Override
         public void eliminar(Long id) {
             datos.removeIf(p -> p.getId().equals(id));
         }
