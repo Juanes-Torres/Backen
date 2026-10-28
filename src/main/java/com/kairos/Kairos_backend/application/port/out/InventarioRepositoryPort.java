@@ -13,6 +13,12 @@ public interface InventarioRepositoryPort {
 
     boolean existePorProductoYAlmacen(Long idProducto, Long idAlmacen);
 
+    /**
+     * Para descontar stock: BLOQUEA ese registro hasta que termine la transacción,
+     * así dos ventas al mismo tiempo no pueden vender la misma unidad.
+     */
+    Optional<Inventario> buscarParaDescontar(Long idProducto, Long idAlmacen);
+
     boolean existePorProducto(Long idProducto);
 
     /** Solo los almacenes de la empresa. Si idAlmacen es null, devuelve todos sus almacenes. */
