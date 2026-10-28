@@ -2,7 +2,9 @@ package com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.reposit
 
 import com.kairos.Kairos_backend.application.port.out.InventarioDetalle;
 import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.entity.InventarioEntity;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -14,6 +16,10 @@ public interface InventarioJpaRepository extends JpaRepository<InventarioEntity,
     boolean existsByIdProductoAndIdAlmacen(Long idProducto, Long idAlmacen);
 
     boolean existsByIdProducto(Long idProducto);
+
+    /** SELECT ... FOR UPDATE: bloquea la fila hasta que termine la venta. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<InventarioEntity> findByIdProductoAndIdAlmacen(Long idProducto, Long idAlmacen);
 
     // Consultas JPQL: une inventario + producto + almacén para traer también los nombres.
     // El filtro por empresa va sobre el almacén: el inventario es de la empresa dueña de la sede.

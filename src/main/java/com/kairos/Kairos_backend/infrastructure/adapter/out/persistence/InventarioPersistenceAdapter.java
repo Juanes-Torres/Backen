@@ -35,6 +35,11 @@ public class InventarioPersistenceAdapter implements InventarioRepositoryPort {
     }
 
     @Override
+    public Optional<Inventario> buscarParaDescontar(Long idProducto, Long idAlmacen) {
+        return jpaRepository.findByIdProductoAndIdAlmacen(idProducto, idAlmacen).map(InventarioMapper::toDomain);
+    }
+
+    @Override
     public boolean existePorProducto(Long idProducto) {
         return jpaRepository.existsByIdProducto(idProducto);
     }
