@@ -7,11 +7,13 @@ import java.util.List;
 
 /**
  * CASO DE USO: administrar y consultar el catálogo de productos.
- * La consulta es pública; crear, cambiar y borrar es solo dentro de la empresa del token.
+ * La consulta es pública (solo empresas ACTIVAS); crear, cambiar y borrar es solo
+ * dentro de la empresa del token.
  */
 public interface GestionarProductosUseCase {
 
-    List<Producto> buscar(Long idCategoria, String nombre);
+    /** Catálogo público. idEmpresa es opcional: sin él, muestra todas las empresas activas. */
+    List<Producto> buscar(Long idEmpresa, Long idCategoria, String nombre);
 
     Producto obtener(Long id);
 

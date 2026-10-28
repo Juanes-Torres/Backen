@@ -30,11 +30,12 @@ public class ProductoController {
         this.productos = productos;
     }
 
-    /** RF03 - Consulta pública del catálogo con filtros opcionales. */
+    /** RF03 - Catálogo público (solo empresas activas) con filtros opcionales. */
     @GetMapping
-    public List<ProductoResponse> buscar(@RequestParam(required = false) Long idCategoria,
+    public List<ProductoResponse> buscar(@RequestParam(required = false) Long idEmpresa,
+                                         @RequestParam(required = false) Long idCategoria,
                                          @RequestParam(required = false) String nombre) {
-        return productos.buscar(idCategoria, nombre).stream().map(ProductoResponse::desde).toList();
+        return productos.buscar(idEmpresa, idCategoria, nombre).stream().map(ProductoResponse::desde).toList();
     }
 
     @GetMapping("/{id}")
