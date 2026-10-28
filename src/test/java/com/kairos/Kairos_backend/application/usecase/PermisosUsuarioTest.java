@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Regla de quién puede ver o cambiar a quién (cada empresa solo ve lo suyo).
  */
-class BuscarUsuarioServiceTest {
+class PermisosUsuarioTest {
 
     private static final Long TECNO = 1L;
     private static final Long MUNDO_CEL = 2L;
@@ -27,19 +27,19 @@ class BuscarUsuarioServiceTest {
 
     @Test
     void unAdministradorGestionaALosEmpleadosDeSuEmpresa() {
-        assertTrue(BuscarUsuarioService.puedeGestionar(adminTecno, vendedorTecno));
+        assertTrue(PermisosUsuario.puedeGestionar(adminTecno, vendedorTecno));
     }
 
     @Test
     void unAdministradorNoGestionaAEmpleadosDeOtraEmpresaNiAClientes() {
-        assertFalse(BuscarUsuarioService.puedeGestionar(adminTecno, vendedorMundoCel));
-        assertFalse(BuscarUsuarioService.puedeGestionar(adminTecno, cliente));
+        assertFalse(PermisosUsuario.puedeGestionar(adminTecno, vendedorMundoCel));
+        assertFalse(PermisosUsuario.puedeGestionar(adminTecno, cliente));
     }
 
     @Test
     void elSuperadminGestionaALosClientesPeroNoALosEmpleados() {
-        assertTrue(BuscarUsuarioService.puedeGestionar(superadmin, cliente));
-        assertFalse(BuscarUsuarioService.puedeGestionar(superadmin, vendedorTecno));
+        assertTrue(PermisosUsuario.puedeGestionar(superadmin, cliente));
+        assertFalse(PermisosUsuario.puedeGestionar(superadmin, vendedorTecno));
     }
 
     @Test
@@ -47,8 +47,8 @@ class BuscarUsuarioServiceTest {
         Solicitante elCliente = new Solicitante(30L, Rol.CLIENTE, null);
         Solicitante elVendedor = new Solicitante(10L, Rol.VENDEDOR, TECNO);
 
-        assertTrue(BuscarUsuarioService.puedeGestionar(elCliente, cliente));
-        assertFalse(BuscarUsuarioService.puedeGestionar(elVendedor, vendedorMundoCel));
+        assertTrue(PermisosUsuario.puedeGestionar(elCliente, cliente));
+        assertFalse(PermisosUsuario.puedeGestionar(elVendedor, vendedorMundoCel));
     }
 
     private static Usuario usuario(Long id, Rol rol, Long idEmpresa) {

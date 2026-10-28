@@ -51,6 +51,10 @@ com.kairos.Kairos_backend
 - Las reglas de negocio viven en el dominio o en los Services, **nunca en los controllers**.
 - Las respuestas de la API usan DTOs. **Nunca se devuelve `passwordHash`.**
 - Excepciones del dominio y su código HTTP: `ReglaNegocioException` → 400, `CredencialesInvalidasException` → 401, `RecursoNoEncontradoException` → 404, `RecursoDuplicadoException` → 409.
+- **12 factores y SOLID (obligatorios):** todo cambio debe respetarlos. Ver `docs/12-factores-y-solid.md`.
+  - Configuración que cambia entre ambientes → variable de entorno (con valor por defecto solo en desarrollo). Nada de estado en memoria entre peticiones.
+  - Puertos pequeños y por tema: si un cliente del puerto no usa un método, va en otra interfaz. Una regla que usan dos servicios vive en una sola clase.
+  - `ArquitecturaTest` vigila las capas: si falla, se arregla el código, no la prueba.
 
 ## 4. Reglas críticas
 

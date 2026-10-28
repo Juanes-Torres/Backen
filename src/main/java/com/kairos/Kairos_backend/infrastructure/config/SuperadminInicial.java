@@ -1,6 +1,6 @@
 package com.kairos.Kairos_backend.infrastructure.config;
 
-import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase;
+import com.kairos.Kairos_backend.application.port.in.CrearSuperadminUseCase;
 import com.kairos.Kairos_backend.application.port.out.UsuarioRepositoryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,16 +18,16 @@ public class SuperadminInicial implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(SuperadminInicial.class);
 
     private final UsuarioRepositoryPort usuarioRepository;
-    private final RegistrarUsuarioUseCase registrarUsuario;
+    private final CrearSuperadminUseCase crearSuperadmin;
     private final String email;
     private final String password;
 
     public SuperadminInicial(UsuarioRepositoryPort usuarioRepository,
-                             RegistrarUsuarioUseCase registrarUsuario,
+                             CrearSuperadminUseCase crearSuperadmin,
                              @Value("${kairos.superadmin.email}") String email,
                              @Value("${kairos.superadmin.password}") String password) {
         this.usuarioRepository = usuarioRepository;
-        this.registrarUsuario = registrarUsuario;
+        this.crearSuperadmin = crearSuperadmin;
         this.email = email;
         this.password = password;
     }
@@ -37,7 +37,7 @@ public class SuperadminInicial implements CommandLineRunner {
         if (usuarioRepository.existePorEmail(email)) {
             return;
         }
-        registrarUsuario.registrarSuperadmin("Superadministrador KAIRÓS", email, password);
+        crearSuperadmin.registrarSuperadmin("Superadministrador KAIRÓS", email, password);
         log.info("Superadministrador inicial creado: {}", email);
     }
 }
