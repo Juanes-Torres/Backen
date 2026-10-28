@@ -33,8 +33,8 @@ $porDefectoDesarrollo = @{
 }
 $variables = 'DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'CORS_ORIGINS', 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SUPERADMIN_EMAIL', 'SUPERADMIN_PASSWORD', 'FRONTEND_URL'
 
-# Opcionales en todos los ambientes: correo de bienvenida (si no estan, el correo queda apagado)
-$opcionalesCorreo = 'MAIL_ENABLED', 'MAIL_USERNAME', 'MAIL_PASSWORD'
+# Opcionales en todos los ambientes (si no estan, se usan sus valores por defecto; sin MAIL_* el correo queda apagado)
+$opcionalesCorreo = 'MAIL_ENABLED', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_HOST', 'MAIL_PORT', 'JWT_EXPIRATION_MS'
 
 function Ocultar([string]$nombre, [string]$valor) {
     if ($nombre -match 'PASSWORD|SECRET') { return '****' }
