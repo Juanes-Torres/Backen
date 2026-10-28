@@ -1,5 +1,6 @@
 package com.kairos.Kairos_backend.infrastructure.adapter.in.web.empresa;
 
+import com.kairos.Kairos_backend.application.port.in.ConsultarEmpresasActivasUseCase;
 import com.kairos.Kairos_backend.application.port.in.GestionarEmpresasUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarEmpresaUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarEmpresaUseCase.RegistrarEmpresaCommand;
@@ -29,11 +30,20 @@ public class EmpresaController {
 
     private final RegistrarEmpresaUseCase registrarEmpresa;
     private final GestionarEmpresasUseCase gestionarEmpresas;
+    private final ConsultarEmpresasActivasUseCase empresasActivas;
 
     public EmpresaController(RegistrarEmpresaUseCase registrarEmpresa,
-                             GestionarEmpresasUseCase gestionarEmpresas) {
+                             GestionarEmpresasUseCase gestionarEmpresas,
+                             ConsultarEmpresasActivasUseCase empresasActivas) {
         this.registrarEmpresa = registrarEmpresa;
         this.gestionarEmpresas = gestionarEmpresas;
+        this.empresasActivas = empresasActivas;
+    }
+
+    /** Público: las empresas activas, para que el cliente elija dónde comprar. */
+    @GetMapping("/activas")
+    public List<EmpresaPublicaResponse> listarActivas() {
+        return empresasActivas.listarActivas().stream().map(EmpresaPublicaResponse::desde).toList();
     }
 
     /** Registro público: la empresa queda PENDIENTE junto con su administrador. */

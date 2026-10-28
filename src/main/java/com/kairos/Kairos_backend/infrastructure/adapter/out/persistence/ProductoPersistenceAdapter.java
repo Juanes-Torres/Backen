@@ -2,7 +2,6 @@ package com.kairos.Kairos_backend.infrastructure.adapter.out.persistence;
 
 import com.kairos.Kairos_backend.application.port.out.ProductoRepositoryPort;
 import com.kairos.Kairos_backend.domain.model.Producto;
-import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.entity.ProductoEntity;
 import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.mapper.ProductoMapper;
 import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.repository.ProductoJpaRepository;
 import org.springframework.stereotype.Component;
@@ -30,21 +29,10 @@ public class ProductoPersistenceAdapter implements ProductoRepositoryPort {
     }
 
     @Override
-    public List<Producto> buscar(Long idCategoria, String nombre) {
-        boolean hayNombre = nombre != null && !nombre.isBlank();
-        List<ProductoEntity> resultado;
-
-        // Elegimos la consulta según qué filtros llegaron
-        if (idCategoria != null && hayNombre) {
-            resultado = jpaRepository.findByIdCategoriaAndNombreContainingIgnoreCaseOrderByNombreAsc(idCategoria, nombre.trim());
-        } else if (idCategoria != null) {
-            resultado = jpaRepository.findByIdCategoriaOrderByNombreAsc(idCategoria);
-        } else if (hayNombre) {
-            resultado = jpaRepository.findByNombreContainingIgnoreCaseOrderByNombreAsc(nombre.trim());
-        } else {
-            resultado = jpaRepository.findAllByOrderByNombreAsc();
-        }
-        return resultado.stream().map(ProductoMapper::toDomain).toList();
+    public List<Producto> buscarEnCatalogo(Long idEmpresa, Long idCategoria, String nombre) {
+        String texto = nombre == null ? "" : nombre.trim();   // "" = sin filtro por nombre
+        return jpaRepository.buscarEnCatalogo(idEmpresa, idCategoria, texto).stream()
+                .map(ProductoMapper::toDomain).toList();
     }
 
     @Override

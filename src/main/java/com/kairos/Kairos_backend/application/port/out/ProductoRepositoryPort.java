@@ -11,8 +11,11 @@ public interface ProductoRepositoryPort {
 
     Optional<Producto> buscarPorId(Long id);
 
-    /** Filtros opcionales: si llegan en null, no se filtra por ese campo. */
-    List<Producto> buscar(Long idCategoria, String nombre);
+    /**
+     * Catálogo público: SOLO productos de empresas ACTIVAS.
+     * Filtros opcionales: si llegan en null, no se filtra por ese campo.
+     */
+    List<Producto> buscarEnCatalogo(Long idEmpresa, Long idCategoria, String nombre);
 
     boolean existePorId(Long id);
 
