@@ -1,11 +1,41 @@
-// Alloy: lee el archivo de log del backend (JSON, formato ECS) y lo envía a Loki.
+// Alloy: lee los logs del backend (JSON, formato ECS) y los envía a Loki.
+// Dos orígenes: el archivo del backend local (LOG_FILE) y la consola del contenedor kairos-backend.
 
 local.file_match "kairos" {
-  path_targets = [{"__path__" = "/var/log/kairos/*.log", "servicio" = "kairos-backend"}]
+  path_targets = [{"__path__" = "/var/log/kairos/*.log", "servicio" = "kairos-backend", "origen" = "local"}]
 }
 
 loki.source.file "kairos" {
   targets    = local.file_match.kairos.targets
+  forward_to = [loki.process.kairos.receiver]
+}
+
+// Consola del contenedor kairos-backend (docker compose del backend)
+discovery.docker "contenedores" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "kairos_docker" {
+  targets = discovery.docker.contenedores.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/kairos-backend"
+    action        = "keep"
+  }
+  rule {
+    target_label = "servicio"
+    replacement  = "kairos-backend"
+  }
+  rule {
+    target_label = "origen"
+    replacement  = "docker"
+  }
+}
+
+loki.source.docker "kairos" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.kairos_docker.output
   forward_to = [loki.process.kairos.receiver]
 }
 

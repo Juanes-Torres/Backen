@@ -9,6 +9,16 @@
   "templating": {
     "list": [
       {
+        "name": "origen",
+        "label": "Origen",
+        "type": "custom",
+        "query": "docker,local",
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": ["All"], "value": ["$__all"] }
+      },
+      {
         "name": "nivel",
         "label": "Nivel",
         "type": "custom",
@@ -31,7 +41,7 @@
       "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
       "datasource": { "type": "loki", "uid": "loki-kairos" },
       "targets": [
-        { "refId": "A", "queryType": "instant", "expr": "sum(count_over_time({servicio=\"kairos-backend\"} | clase=~\".*RegistroPeticionesFilter\" [$__range]))" }
+        { "refId": "A", "queryType": "instant", "expr": "sum(count_over_time({servicio=\"kairos-backend\", origen=~\"$origen\"} | clase=~\".*RegistroPeticionesFilter\" [$__range]))" }
       ],
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" }
     },
@@ -42,7 +52,7 @@
       "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
       "datasource": { "type": "loki", "uid": "loki-kairos" },
       "targets": [
-        { "refId": "A", "queryType": "instant", "expr": "sum(count_over_time({servicio=\"kairos-backend\", nivel=~\"WARN|ERROR\"} [$__range])) or vector(0)" }
+        { "refId": "A", "queryType": "instant", "expr": "sum(count_over_time({servicio=\"kairos-backend\", origen=~\"$origen\", nivel=~\"WARN|ERROR\"} [$__range])) or vector(0)" }
       ],
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
       "fieldConfig": {
@@ -61,7 +71,7 @@
         {
           "refId": "A",
           "legendFormat": "{{codigo}}",
-          "expr": "sum by (codigo) (count_over_time({servicio=\"kairos-backend\"} | clase=~\".*RegistroPeticionesFilter\" | json | line_format \"{{.message}}\" | regexp `-> (?P<codigo>\\d+)` [$__interval]))"
+          "expr": "sum by (codigo) (count_over_time({servicio=\"kairos-backend\", origen=~\"$origen\"} | clase=~\".*RegistroPeticionesFilter\" | json | line_format \"{{.message}}\" | regexp `-> (?P<codigo>\\d+)` [$__interval]))"
         }
       ]
     },
@@ -74,7 +84,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "{servicio=\"kairos-backend\", nivel=~\"$nivel\"} | idPeticion=~\"$idPeticion\" | idUsuario=~\"$idUsuario\" | idEmpresa=~\"$idEmpresa\" | json | line_format \"{{.log_level}} [{{.idPeticion}} u={{.idUsuario}} e={{.idEmpresa}}] {{.message}}\""
+          "expr": "{servicio=\"kairos-backend\", origen=~\"$origen\", nivel=~\"$nivel\"} | idPeticion=~\"$idPeticion\" | idUsuario=~\"$idUsuario\" | idEmpresa=~\"$idEmpresa\" | json | line_format \"{{.log_level}} [{{.idPeticion}} u={{.idUsuario}} e={{.idEmpresa}}] {{.message}}\""
         }
       ],
       "options": { "showTime": true, "wrapLogMessage": true, "sortOrder": "Descending", "enableLogDetails": true }
