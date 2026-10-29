@@ -156,6 +156,11 @@ class RegistrarVentaServiceTest {
         }
 
         @Override
+        public Optional<Venta> buscarPorId(Long id) {
+            return datos.stream().filter(v -> v.getId().equals(id)).findFirst();
+        }
+
+        @Override
         public long contarPorEmpresa(Long idEmpresa) {
             return datos.stream().filter(v -> v.getIdEmpresa().equals(idEmpresa)).count();
         }
