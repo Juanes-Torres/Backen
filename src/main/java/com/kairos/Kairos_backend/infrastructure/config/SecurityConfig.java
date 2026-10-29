@@ -57,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/empresas").permitAll()
                         // Empresas activas: el cliente elige dónde comprar
                         .requestMatchers(HttpMethod.GET, "/api/empresas/activas").permitAll()
+                        // Buscar por código de barras usa una API externa con límite diario: exige sesión
+                        .requestMatchers(HttpMethod.GET, "/api/productos/codigo-barras/**").authenticated()
                         // Catálogo web: cualquiera puede consultarlo (RF03)
                         .requestMatchers(HttpMethod.GET, "/api/productos", "/api/productos/**",
                                 "/api/categorias", "/api/categorias/**").permitAll()

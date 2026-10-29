@@ -1,5 +1,6 @@
 package com.kairos.Kairos_backend.infrastructure.adapter.in.web.catalogo;
 
+import com.kairos.Kairos_backend.application.port.in.ConsultarCodigoBarrasUseCase;
 import com.kairos.Kairos_backend.application.port.in.GestionarProductosUseCase;
 import com.kairos.Kairos_backend.application.port.in.GestionarProductosUseCase.ProductoCommand;
 import com.kairos.Kairos_backend.infrastructure.security.UsuarioAutenticado;
@@ -25,9 +26,18 @@ import java.util.List;
 public class ProductoController {
 
     private final GestionarProductosUseCase productos;
+    private final ConsultarCodigoBarrasUseCase codigoBarras;
 
-    public ProductoController(GestionarProductosUseCase productos) {
+    public ProductoController(GestionarProductosUseCase productos, ConsultarCodigoBarrasUseCase codigoBarras) {
         this.productos = productos;
+        this.codigoBarras = codigoBarras;
+    }
+
+    /** Solo ADMINISTRADOR: sugiere nombre, marca y descripción a partir del código de barras (API externa). */
+    @GetMapping("/codigo-barras/{codigo}")
+    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    public DatosCodigoBarrasResponse buscarPorCodigoBarras(@PathVariable String codigo) {
+        return DatosCodigoBarrasResponse.desde(codigo, codigoBarras.consultar(codigo));
     }
 
     /** RF03 - Catálogo público (solo empresas activas) con filtros opcionales. */
