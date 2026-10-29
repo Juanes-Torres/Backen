@@ -34,7 +34,7 @@ $porDefectoDesarrollo = @{
 $variables = 'DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'CORS_ORIGINS', 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SUPERADMIN_EMAIL', 'SUPERADMIN_PASSWORD', 'FRONTEND_URL'
 
 # Opcionales en todos los ambientes (si no estan, se usan sus valores por defecto; sin MAIL_* el correo queda apagado)
-$opcionalesCorreo = 'MAIL_ENABLED', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_HOST', 'MAIL_PORT', 'JWT_EXPIRATION_MS', 'APIS_TIMEOUT_MS', 'CODIGO_BARRAS_API_URL', 'QR_API_URL'
+$opcionalesCorreo = 'MAIL_ENABLED', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_HOST', 'MAIL_PORT', 'JWT_EXPIRATION_MS', 'APIS_TIMEOUT_MS', 'CODIGO_BARRAS_API_URL', 'QR_API_URL', 'LOG_LEVEL', 'LOG_FORMAT', 'LOG_FILE'
 
 function Ocultar([string]$nombre, [string]$valor) {
     if ($nombre -match 'PASSWORD|SECRET') { return '****' }

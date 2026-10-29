@@ -38,3 +38,6 @@ Claude outputs/
 ### Secretos locales ###
 secrets.properties
 .env
+
+### Logs locales (LOG_FILE) ###
+logs/
