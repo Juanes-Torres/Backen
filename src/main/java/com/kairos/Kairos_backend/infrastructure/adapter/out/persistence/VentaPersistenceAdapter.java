@@ -6,6 +6,8 @@ import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.mapper.V
 import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.repository.VentaJpaRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 public class VentaPersistenceAdapter implements VentaRepositoryPort {
 
@@ -18,6 +20,11 @@ public class VentaPersistenceAdapter implements VentaRepositoryPort {
     @Override
     public Venta guardar(Venta venta) {
         return VentaMapper.toDomain(jpaRepository.save(VentaMapper.toEntity(venta)));
+    }
+
+    @Override
+    public Optional<Venta> buscarPorId(Long id) {
+        return jpaRepository.findById(id).map(VentaMapper::toDomain);
     }
 
     @Override
