@@ -1,0 +1,54 @@
+# =========================================================
+# KAIRÓS - Ver los logs del backend en el navegador (Grafana + Loki)
+#   1. Arranca el backend con archivo de log:
+#        $env:LOG_FILE = "logs/kairos.log"; .\mvnw.cmd spring-boot:run
+#   2. En esta carpeta: docker compose up -d
+#   3. Abre http://localhost:3300 (usuario admin / admin) → tablero "KAIRÓS - Logs"
+# Detener: docker compose down   ·   Borrar también los logs guardados: docker compose down -v
+#
+# Alloy lee ../logs/kairos.log → Loki guarda los logs → Grafana los muestra
+# =========================================================
+
+services:
+
+  loki:
+    image: grafana/loki:3.5.0
+    container_name: kairos-loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-datos:/loki
+    restart: unless-stopped
+
+  alloy:
+    image: grafana/alloy:v1.9.0
+    container_name: kairos-alloy
+    command: run /etc/alloy/config.alloy
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      # La carpeta logs/ del backend (la crea LOG_FILE), solo lectura
+      - ../logs:/var/log/kairos:ro
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:12.0.0
+    container_name: kairos-grafana
+    ports:
+      # 3300 en tu computadora (el 3000 ya lo usa otro proyecto)
+      - "3300:3000"
+    environment:
+      GF_USERS_DEFAULT_LANGUAGE: es-ES
+    volumes:
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana-datos:/var/lib/grafana
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+volumes:
+  loki-datos:
+  grafana-datos:

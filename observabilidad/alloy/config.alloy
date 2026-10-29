@@ -1,0 +1,48 @@
+// Alloy: lee el archivo de log del backend (JSON, formato ECS) y lo envía a Loki.
+
+local.file_match "kairos" {
+  path_targets = [{"__path__" = "/var/log/kairos/*.log", "servicio" = "kairos-backend"}]
+}
+
+loki.source.file "kairos" {
+  targets    = local.file_match.kairos.targets
+  forward_to = [loki.process.kairos.receiver]
+}
+
+loki.process "kairos" {
+  // Saca los campos del JSON de cada línea
+  stage.json {
+    expressions = {
+      nivel      = "log.level",
+      clase      = "log.logger",
+      fecha      = "\"@timestamp\"",
+      idPeticion = "idPeticion",
+      idUsuario  = "idUsuario",
+      idEmpresa  = "idEmpresa",
+    }
+  }
+
+  // Etiqueta: pocos valores posibles (INFO, WARN, ERROR...), para filtrar rápido
+  stage.labels {
+    values = { nivel = "" }
+  }
+
+  // Datos de cada línea (muchos valores posibles): se buscan sin volverlos etiqueta
+  stage.structured_metadata {
+    values = { idPeticion = "", idUsuario = "", idEmpresa = "", clase = "" }
+  }
+
+  // La hora del log es la que escribió el backend, no la hora en que Alloy lo leyó
+  stage.timestamp {
+    source = "fecha"
+    format = "RFC3339Nano"
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "uid": "kairos-logs",
+  "title": "KAIRÓS - Logs",
+  "tags": ["kairos"],
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "schemaVersion": 41,
+  "templating": {
+    "list": [
+      {
+        "name": "nivel",
+        "label": "Nivel",
+        "type": "custom",
+        "query": "INFO,WARN,ERROR,DEBUG",
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": { "text": ["All"], "value": ["$__all"] }
+      },
+      { "name": "idPeticion", "label": "Id de petición", "type": "textbox", "query": ".*", "current": { "text": ".*", "value": ".*" } },
+      { "name": "idUsuario", "label": "Usuario", "type": "textbox", "query": ".*", "current": { "text": ".*", "value": ".*" } },
+      { "name": "idEmpresa", "label": "Empresa", "type": "textbox", "query": ".*", "current": { "text": ".*", "value": ".*" } }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Peticiones",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "loki", "uid": "loki-kairos" },
+      "targets": [
+        { "refId": "A", "queryType": "instant", "expr": "sum(count_over_time({servicio=\"kairos-backend\"} | clase=~\".*RegistroPeticionesFilter\" [$__range]))" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Avisos y errores",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 5 },
+      "datasource": { "type": "loki", "uid": "loki-kairos" },
+      "targets": [
+        { "refId": "A", "queryType": "instant", "expr": "sum(count_over_time({servicio=\"kairos-backend\", nivel=~\"WARN|ERROR\"} [$__range])) or vector(0)" }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Peticiones por código HTTP",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 5 },
+      "datasource": { "type": "loki", "uid": "loki-kairos" },
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "{{codigo}}",
+          "expr": "sum by (codigo) (count_over_time({servicio=\"kairos-backend\"} | clase=~\".*RegistroPeticionesFilter\" | json | line_format \"{{.message}}\" | regexp `-> (?P<codigo>\\d+)` [$__interval]))"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "logs",
+      "title": "Logs (filtra arriba por nivel, id de petición, usuario o empresa)",
+      "gridPos": { "x": 0, "y": 5, "w": 24, "h": 18 },
+      "datasource": { "type": "loki", "uid": "loki-kairos" },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{servicio=\"kairos-backend\", nivel=~\"$nivel\"} | idPeticion=~\"$idPeticion\" | idUsuario=~\"$idUsuario\" | idEmpresa=~\"$idEmpresa\" | json | line_format \"{{.log_level}} [{{.idPeticion}} u={{.idUsuario}} e={{.idEmpresa}}] {{.message}}\""
+        }
+      ],
+      "options": { "showTime": true, "wrapLogMessage": true, "sortOrder": "Descending", "enableLogDetails": true }
+    }
+  ]
+}
