@@ -59,6 +59,8 @@ services:
       CODIGO_BARRAS_API_URL: ${CODIGO_BARRAS_API_URL:-https://api.upcitemdb.com}
       QR_API_URL: ${QR_API_URL:-https://api.qrserver.com}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      # Logs en JSON por la consola: Grafana + Loki los leen directo de Docker (factor XI)
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ${LOG_FORMAT:-ecs}
     ports:
       - "${SERVER_PORT:-8080}:8080"
     restart: unless-stopped

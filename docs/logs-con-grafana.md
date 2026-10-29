@@ -3,21 +3,24 @@
 El backend escribe sus logs en la consola (12 factores, XI). Para buscarlos y filtrarlos en el navegador se usan tres herramientas en Docker (carpeta `observabilidad/`):
 
 ```
-backend ──escribe──▶ logs/kairos.log ──lee──▶ Alloy ──envía──▶ Loki ──consulta──▶ Grafana (navegador)
+backend en Docker ──consola JSON──┐
+backend local ──logs/kairos.log──┴──▶ Alloy ──envía──▶ Loki ──consulta──▶ Grafana (navegador)
 ```
 
 | Herramienta | Para qué sirve | Dirección |
 |---|---|---|
-| **Alloy** | Lee el archivo de log y se lo pasa a Loki | (interna) |
+| **Alloy** | Lee la consola del contenedor `kairos-backend` y el archivo de log local, y se los pasa a Loki | (interna) |
 | **Loki** | Guarda los logs y permite buscarlos | http://localhost:3100 |
 | **Grafana** | Muestra los logs con filtros y gráficas | http://localhost:3300 |
 
 ## Cómo usarlo
 
-1. Arranca el backend **con archivo de log** (en la carpeta del backend):
-   ```powershell
-   $env:LOG_FILE = "logs/kairos.log"; .\mvnw.cmd spring-boot:run
-   ```
+1. Arranca el backend de una de estas dos formas (sirven las dos a la vez):
+   - **En Docker** (carpeta del backend): `docker compose up -d`. Escribe sus logs en JSON por la consola y Alloy los lee directo de Docker.
+   - **Local, con archivo de log**:
+     ```powershell
+     $env:LOG_FILE = "logs/kairos.log"; .\mvnw.cmd spring-boot:run
+     ```
 2. Arranca las herramientas (en la carpeta `observabilidad`):
    ```powershell
    docker compose up -d
@@ -34,7 +37,7 @@ Para apagarlas: `docker compose down` (los logs guardados se conservan). Para bo
 - **Peticiones por código HTTP**: cuántas respondieron 200, 400, 401, 404...
 - **Logs**: cada línea con su nivel, `[idPeticion u=usuario e=empresa]` y el mensaje.
 
-Arriba hay filtros: **Nivel**, **Id de petición**, **Usuario** y **Empresa** (`.*` = todos). Ejemplo: escribe `1` en Empresa para ver solo lo que hizo la empresa 1.
+Arriba hay filtros: **Origen** (`docker` o `local`), **Nivel**, **Id de petición**, **Usuario** y **Empresa** (`.*` = todos). Ejemplo: escribe `1` en Empresa para ver solo lo que hizo la empresa 1.
 
 ## Rastrear una petición
 
