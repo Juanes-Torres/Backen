@@ -28,6 +28,12 @@ public class ApisExternasConfig {
         return cliente(url);
     }
 
+    /** API de códigos QR (goQR.me). */
+    @Bean
+    public RestClient qrRestClient(@Value("${kairos.apis.qr.url}") String url) {
+        return cliente(url);
+    }
+
     private RestClient cliente(String url) {
         SimpleClientHttpRequestFactory fabrica = new SimpleClientHttpRequestFactory();
         fabrica.setConnectTimeout(tiempoEspera);
