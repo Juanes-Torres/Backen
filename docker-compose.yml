@@ -54,6 +54,11 @@ services:
       MAIL_ENABLED: ${MAIL_ENABLED:-false}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      # APIs externas (públicas, sin clave): el contenedor necesita salida a internet
+      APIS_TIMEOUT_MS: ${APIS_TIMEOUT_MS:-5000}
+      CODIGO_BARRAS_API_URL: ${CODIGO_BARRAS_API_URL:-https://api.upcitemdb.com}
+      QR_API_URL: ${QR_API_URL:-https://api.qrserver.com}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       - "${SERVER_PORT:-8080}:8080"
     restart: unless-stopped
@@ -62,13 +67,13 @@ services:
     # El frontend está en OTRO repositorio (Juanes-Torres/Frontend).
     # FRONTEND_PATH es la carpeta donde lo tienes, relativa a esta carpeta.
     build:
-      context: ${FRONTEND_PATH:-../../frontend}
-      args:
-        # Dirección del backend que usa el NAVEGADOR (no el contenedor):
-        # por eso es localhost y no "backend"
-        VITE_API_URL: http://localhost:${SERVER_PORT:-8080}
+      context: ${FRONTEND_PATH:-../Kairos-frontend}
     image: kairos-frontend
     container_name: kairos-frontend
+    environment:
+      # Dirección del backend que usa el NAVEGADOR (no el contenedor): por eso es
+      # localhost y no "backend". El frontend la lee al arrancar (no al compilar)
+      API_URL: http://localhost:${SERVER_PORT:-8080}
     depends_on:
       - backend
     ports:
