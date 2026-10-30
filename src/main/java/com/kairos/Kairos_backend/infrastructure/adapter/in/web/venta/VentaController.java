@@ -1,5 +1,7 @@
 package com.kairos.Kairos_backend.infrastructure.adapter.in.web.venta;
 
+import com.kairos.Kairos_backend.application.port.in.ConsultarVentasUseCase;
+import com.kairos.Kairos_backend.application.port.in.ConsultarVentasUseCase.Filtro;
 import com.kairos.Kairos_backend.application.port.in.GenerarQrFacturaUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarVentaUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarVentaUseCase.Item;
@@ -17,9 +19,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.util.List;
 
 /**
  * ADAPTADOR DE ENTRADA (REST) para ventas (RF04).
@@ -31,10 +36,34 @@ public class VentaController {
 
     private final RegistrarVentaUseCase registrarVenta;
     private final GenerarQrFacturaUseCase qrFactura;
+    private final ConsultarVentasUseCase consultarVentas;
 
-    public VentaController(RegistrarVentaUseCase registrarVenta, GenerarQrFacturaUseCase qrFactura) {
+    public VentaController(RegistrarVentaUseCase registrarVenta, GenerarQrFacturaUseCase qrFactura,
+                           ConsultarVentasUseCase consultarVentas) {
         this.registrarVenta = registrarVenta;
         this.qrFactura = qrFactura;
+        this.consultarVentas = consultarVentas;
+    }
+
+    /**
+     * Lista de ventas (SCRUM-48). Filtros opcionales: sede, vendedor y fechas (aaaa-mm-dd).
+     * El admin ve las de su empresa, el vendedor solo las suyas y el cliente sus compras.
+     */
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMINISTRADOR','VENDEDOR','CLIENTE')")
+    public List<VentaResumenResponse> listar(@RequestParam(required = false) Long idAlmacen,
+                                             @RequestParam(required = false) Long idVendedor,
+                                             @RequestParam(required = false) LocalDate desde,
+                                             @RequestParam(required = false) LocalDate hasta,
+                                             @AuthenticationPrincipal UsuarioAutenticado yo) {
+        return consultarVentas.listar(yo.comoSolicitante(), new Filtro(idAlmacen, idVendedor, desde, hasta))
+                .stream().map(VentaResumenResponse::desde).toList();
+    }
+
+    /** Una factura con sus productos. */
+    @GetMapping("/{id}")
+    public VentaDetalleResponse buscar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado yo) {
+        return VentaDetalleResponse.desde(consultarVentas.buscar(yo.comoSolicitante(), id));
     }
 
     /** Registrar una venta: descuenta el stock y genera el número de factura. */
