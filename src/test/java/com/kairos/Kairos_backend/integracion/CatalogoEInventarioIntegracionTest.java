@@ -44,25 +44,40 @@ class CatalogoEInventarioIntegracionTest extends PruebaIntegracion {
     // ---------- Categorías ----------
 
     @Test
-    void categorias_soloElAdminLasCreaYRenombra() throws Exception {
+    void categoriasCompartidas_soloElSuperadminLasCreaYRenombra() throws Exception {
+        Usuario superadmin = usuario(Rol.SUPERADMIN, null, null);
         String nombre = unico("Tablets");
 
         mvc.perform(json(post("/api/categorias"), "{\"nombre\":\"" + nombre + "\"}"))
                 .andExpect(status().isUnauthorized());
 
-        String respuesta = mvc.perform(con(admin, json(post("/api/categorias"), "{\"nombre\":\"" + nombre + "\"}")))
+        String respuesta = mvc.perform(con(superadmin, json(post("/api/categorias"), "{\"nombre\":\"" + nombre + "\"}")))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         long id = idDe(respuesta, "$.id");
 
-        mvc.perform(con(admin, json(put("/api/categorias/" + id), "{\"nombre\":\"" + nombre + " Pro\"}")))
+        mvc.perform(con(superadmin, json(put("/api/categorias/" + id), "{\"nombre\":\"" + nombre + " Pro\"}")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombre").value(nombre + " Pro"));
 
-        mvc.perform(con(admin, json(post("/api/categorias"), "{\"nombre\":\"" + nombre + " Pro\"}")))
+        mvc.perform(con(superadmin, json(post("/api/categorias"), "{\"nombre\":\"" + nombre + " Pro\"}")))
                 .andExpect(status().isConflict());
 
         mvc.perform(get("/api/categorias")).andExpect(status().isOk());
+    }
+
+    @Test
+    void elAdministradorNoCreaNiRenombraCategorias_peroLasUsaEnSusProductos() throws Exception {
+        mvc.perform(con(admin, json(post("/api/categorias"), "{\"nombre\":\"" + unico("Propia") + "\"}")))
+                .andExpect(status().isForbidden());
+        mvc.perform(con(admin, json(put("/api/categorias/" + categoria.getId()), "{\"nombre\":\"Cambiada\"}")))
+                .andExpect(status().isForbidden());
+
+        // Cada empresa crea sus productos con las categorías compartidas
+        mvc.perform(con(admin, json(post("/api/productos"),
+                        "{\"nombre\":\"Con categoria compartida\",\"precio\":1000,\"idCategoria\":" + categoria.getId() + "}")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.idCategoria").value(categoria.getId()));
     }
 
     // ---------- Productos ----------
