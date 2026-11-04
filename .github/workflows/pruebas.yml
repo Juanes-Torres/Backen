@@ -1,0 +1,111 @@
+# =========================================================
+# KAIRÓS backend - pruebas automáticas en GitHub (12 factores: V y X)
+#
+# En cada Pull Request y cada push a desarrollo, pre-produccion y produccion:
+#   1. levanta PostgreSQL 18 (la misma versión que en desarrollo y en Docker)
+#   2. corre ".\mvnw.cmd verify" en Linux: todas las pruebas (unitarias y de integración)
+#      y la regla de JaCoCo que exige mínimo 80 % de cobertura
+#   3. escribe en el resumen cuántas pruebas pasaron y la cobertura
+#   4. guarda el reporte de cobertura (y el de pruebas si algo falla) para descargarlo
+#
+# Si algo falla, el PR muestra una X roja y se ve qué prueba falló.
+# =========================================================
+name: Pruebas backend
+
+on:
+  pull_request:
+    branches: [desarrollo, pre-produccion, produccion]
+  push:
+    branches: [desarrollo, pre-produccion, produccion]
+  workflow_dispatch:          # también se puede correr a mano desde la pestaña Actions
+
+# Si llega un commit nuevo a la misma rama, se cancela la ejecución anterior
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: Pruebas y cobertura
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: kairos_db
+          POSTGRES_USER: kairos
+          # Base de datos desechable: existe solo mientras corren las pruebas
+          POSTGRES_PASSWORD: kairos_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kairos -d kairos_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Perfil desarrollo: el correo queda apagado (no hay secrets.properties) y las APIs externas
+      # se simulan en las pruebas, así que no se necesita ningún secreto
+      SPRING_PROFILES_ACTIVE: desarrollo
+      DB_URL: jdbc:postgresql://localhost:5432/kairos_db
+      DB_USERNAME: kairos
+      DB_PASSWORD: kairos_ci
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven        # guarda las dependencias: las siguientes ejecuciones son más rápidas
+
+      - name: Pruebas y cobertura mínima (mvnw verify)
+        run: ./mvnw -B verify
+
+      - name: Resumen de pruebas y cobertura
+        if: always()
+        run: |
+          pruebas=0; fallas=0
+          for f in target/surefire-reports/TEST-*.xml; do
+            [ -f "$f" ] || continue
+            t=$(grep -o 'tests="[0-9]*"' "$f" | head -1 | grep -o '[0-9]*')
+            e=$(grep -o 'failures="[0-9]*"' "$f" | head -1 | grep -o '[0-9]*')
+            r=$(grep -o 'errors="[0-9]*"' "$f" | head -1 | grep -o '[0-9]*')
+            pruebas=$((pruebas + t)); fallas=$((fallas + e + r))
+          done
+          {
+            echo "## Pruebas del backend"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Pruebas | $pruebas |"
+            echo "| Fallidas | $fallas |"
+            if [ -f target/site/jacoco/jacoco.csv ]; then
+              # Columnas 8 y 9 de jacoco.csv: líneas sin cubrir y cubiertas
+              awk -F, 'NR>1 { m+=$8; c+=$9 } END { printf "| Cobertura de líneas | %.1f %% (mínimo 80 %%) |\n", 100*c/(c+m) }' target/site/jacoco/jacoco.csv
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-jacoco
+          path: target/site/jacoco/
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Guardar reporte de pruebas (si algo falló)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-pruebas
+          path: target/surefire-reports/
+          retention-days: 14
