@@ -28,7 +28,8 @@ public interface GestionarProductosUseCase {
             String descripcion,
             BigDecimal precio,
             String marca,
-            Long idCategoria
+            Long idCategoria,
+            Integer mesesGarantia      // nulo = 12 meses
     ) {
     }
 }

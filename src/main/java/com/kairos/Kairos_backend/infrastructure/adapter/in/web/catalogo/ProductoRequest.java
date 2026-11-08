@@ -2,6 +2,8 @@ package com.kairos.Kairos_backend.infrastructure.adapter.in.web.catalogo;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -25,6 +27,11 @@ public record ProductoRequest(
         String marca,
 
         @NotNull(message = "La categoría es obligatoria")
-        Long idCategoria
+        Long idCategoria,
+
+        /** Opcional: si no se envía, el producto tiene 12 meses de garantía. */
+        @Min(value = 0, message = "Los meses de garantía no pueden ser negativos")
+        @Max(value = 120, message = "Máximo 120 meses de garantía")
+        Integer mesesGarantia
 ) {
 }

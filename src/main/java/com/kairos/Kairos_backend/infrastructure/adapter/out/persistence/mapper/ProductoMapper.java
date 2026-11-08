@@ -10,11 +10,11 @@ public final class ProductoMapper {
 
     public static ProductoEntity toEntity(Producto p) {
         return new ProductoEntity(p.getId(), p.getNombre(), p.getDescripcion(),
-                p.getPrecio(), p.getMarca(), p.getIdCategoria(), p.getIdEmpresa());
+                p.getPrecio(), p.getMarca(), p.getIdCategoria(), p.getIdEmpresa(), p.getMesesGarantia());
     }
 
     public static Producto toDomain(ProductoEntity e) {
         return new Producto(e.getId(), e.getNombre(), e.getDescripcion(),
-                e.getPrecio(), e.getMarca(), e.getIdCategoria(), e.getIdEmpresa());
+                e.getPrecio(), e.getMarca(), e.getIdCategoria(), e.getIdEmpresa(), e.getMesesGarantia());
     }
 }
