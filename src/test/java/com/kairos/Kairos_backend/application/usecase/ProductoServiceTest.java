@@ -114,7 +114,7 @@ class ProductoServiceTest {
         }
 
         void agregar(Long id, String nombre, Long idEmpresa) {
-            datos.add(new Producto(id, nombre, null, BigDecimal.TEN, null, 1L, idEmpresa));
+            datos.add(new Producto(id, nombre, null, BigDecimal.TEN, null, 1L, idEmpresa, null));
         }
 
         @Override

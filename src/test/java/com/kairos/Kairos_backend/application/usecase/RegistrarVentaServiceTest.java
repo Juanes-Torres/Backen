@@ -231,7 +231,7 @@ class RegistrarVentaServiceTest {
         private final List<Producto> datos = new ArrayList<>();
 
         void agregar(Long id, String nombre, String precio, Long idEmpresa) {
-            datos.add(new Producto(id, nombre, null, new BigDecimal(precio), null, 1L, idEmpresa));
+            datos.add(new Producto(id, nombre, null, new BigDecimal(precio), null, 1L, idEmpresa, null));
         }
 
         @Override
