@@ -2,6 +2,7 @@ package com.kairos.Kairos_backend.infrastructure.adapter.in.web.usuario;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -22,6 +23,10 @@ public record RegistroClienteRequest(
         String password,
 
         @Size(max = 20, message = "Máximo 20 caracteres")
-        String telefono
+        String telefono,
+
+        /** Opcional: con ella el vendedor encuentra sus compras y garantías. */
+        @Pattern(regexp = "\\d{5,15}", message = "La cédula debe tener entre 5 y 15 dígitos, sin puntos ni letras")
+        String cedula
 ) {
 }

@@ -20,7 +20,8 @@ public interface RegistrarUsuarioUseCase {
             String nombre,
             String email,
             String password,
-            String telefono
+            String telefono,
+            String cedula          // opcional
     ) {
     }
 
