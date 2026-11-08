@@ -52,7 +52,7 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<UsuarioResponse> registrarCliente(@Valid @RequestBody RegistroClienteRequest request) {
         Usuario creado = registrarUsuario.registrarCliente(new RegistrarClienteCommand(
-                request.nombre(), request.email(), request.password(), request.telefono()));
+                request.nombre(), request.email(), request.password(), request.telefono(), request.cedula()));
         return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponse.desde(creado));
     }
 

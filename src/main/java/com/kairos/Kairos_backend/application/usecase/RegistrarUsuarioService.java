@@ -37,7 +37,7 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase, CrearSu
     public Usuario registrarCliente(RegistrarClienteCommand command) {
         // Regla: el registro público siempre crea un CLIENTE y sin almacén
         return registrar(command.nombre(), command.email(), command.password(),
-                Rol.CLIENTE, command.telefono(), null, null);
+                Rol.CLIENTE, command.telefono(), null, null, command.cedula());
     }
 
     @Override
@@ -51,17 +51,17 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase, CrearSu
             throw new ReglaNegocioException("No se puede crear un superadministrador");
         }
         return registrar(command.nombre(), command.email(), command.password(),
-                command.rol(), command.telefono(), command.idAlmacen(), command.idEmpresa());
+                command.rol(), command.telefono(), command.idAlmacen(), command.idEmpresa(), null);
     }
 
     @Override
     public Usuario registrarSuperadmin(String nombre, String email, String password) {
-        return registrar(nombre, email, password, Rol.SUPERADMIN, null, null, null);
+        return registrar(nombre, email, password, Rol.SUPERADMIN, null, null, null, null);
     }
 
     /** Pasos comunes a todo registro. */
     private Usuario registrar(String nombre, String email, String password,
-                              Rol rol, String telefono, Long idAlmacen, Long idEmpresa) {
+                              Rol rol, String telefono, Long idAlmacen, Long idEmpresa, String cedula) {
         // 1. La contraseña en texto plano solo existe aquí: validarla antes de cifrarla
         if (password == null || password.length() < LONGITUD_MINIMA_PASSWORD) {
             throw new ReglaNegocioException(
@@ -91,6 +91,7 @@ public class RegistrarUsuarioService implements RegistrarUsuarioUseCase, CrearSu
                 idAlmacen,
                 idEmpresa
         );
+        nuevo.asignarCedula(cedula);
 
         // 5. Guardar
         Usuario guardado = usuarioRepository.guardar(nuevo);

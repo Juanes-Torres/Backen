@@ -59,7 +59,7 @@ public class ProductoService implements GestionarProductosUseCase {
     public Producto crear(Long idEmpresa, ProductoCommand command) {
         validarCategoria(command.idCategoria());
         Producto nuevo = Producto.nuevo(command.nombre(), command.descripcion(),
-                command.precio(), command.marca(), command.idCategoria(), idEmpresa);
+                command.precio(), command.marca(), command.idCategoria(), idEmpresa, command.mesesGarantia());
         return productoRepository.guardar(nuevo);
     }
 
@@ -68,7 +68,7 @@ public class ProductoService implements GestionarProductosUseCase {
         Producto producto = obtenerDeEmpresa(idEmpresa, id);
         validarCategoria(command.idCategoria());
         producto.actualizar(command.nombre(), command.descripcion(),
-                command.precio(), command.marca(), command.idCategoria());
+                command.precio(), command.marca(), command.idCategoria(), command.mesesGarantia());
         return productoRepository.guardar(producto);
     }
 

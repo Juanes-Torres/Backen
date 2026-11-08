@@ -156,6 +156,27 @@ class CatalogoEInventarioIntegracionTest extends PruebaIntegracion {
                 .andExpect(status().isForbidden());
     }
 
+    @Test
+    void plazoDeGarantia_porDefecto12Meses_seCambiaAlEditarYSeVeEnElCatalogo() throws Exception {
+        String respuesta = mvc.perform(con(admin, json(post("/api/productos"),
+                        "{\"nombre\":\"TV Prueba\",\"precio\":2000000,\"idCategoria\":" + categoria.getId() + "}")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.mesesGarantia").value(12))
+                .andReturn().getResponse().getContentAsString();
+        long id = idDe(respuesta, "$.id");
+
+        mvc.perform(con(admin, json(put("/api/productos/" + id),
+                        "{\"nombre\":\"TV Prueba\",\"precio\":2000000,\"idCategoria\":" + categoria.getId() + ",\"mesesGarantia\":24}")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mesesGarantia").value(24));
+        mvc.perform(get("/api/productos/" + id)).andExpect(jsonPath("$.mesesGarantia").value(24));
+
+        mvc.perform(con(admin, json(post("/api/productos"),
+                        "{\"nombre\":\"Malo\",\"precio\":1,\"idCategoria\":" + categoria.getId() + ",\"mesesGarantia\":-1}")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.mesesGarantia").exists());
+    }
+
     // ---------- Almacenes ----------
 
     @Test

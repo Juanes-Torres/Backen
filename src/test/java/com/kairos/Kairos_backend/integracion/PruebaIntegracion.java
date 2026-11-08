@@ -81,7 +81,7 @@ public abstract class PruebaIntegracion {
 
     protected Producto producto(Long idEmpresa, Long idCategoria, String precio) {
         return productos.guardar(Producto.nuevo(unico("Producto"), "De prueba", new BigDecimal(precio),
-                "Marca", idCategoria, idEmpresa));
+                "Marca", idCategoria, idEmpresa, null));
     }
 
     protected Inventario inventario(Long idProducto, Long idAlmacen, int cantidad, int minimo) {
