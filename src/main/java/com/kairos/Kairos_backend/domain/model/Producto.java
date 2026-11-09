@@ -38,9 +38,11 @@ public class Producto {
         return new Producto(null, nombre, descripcion, precio, marca, idCategoria, idEmpresa, mesesGarantia);
     }
 
+    /** mesesGarantia nulo = se conserva el plazo que ya tenía (un cliente viejo de la API no lo borra). */
     public void actualizar(String nombre, String descripcion, BigDecimal precio,
                            String marca, Long idCategoria, Integer mesesGarantia) {
-        asignarDatos(nombre, descripcion, precio, marca, idCategoria, mesesGarantia);
+        asignarDatos(nombre, descripcion, precio, marca, idCategoria,
+                mesesGarantia == null ? this.mesesGarantia : mesesGarantia);
     }
 
     /** La garantía de este producto para una compra hecha en esa fecha. */

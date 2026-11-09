@@ -57,6 +57,17 @@ class GarantiaTest {
     }
 
     @Test
+    void alEditarSinIndicarElPlazo_seConservaElQueTenia() {
+        Producto tv = Producto.nuevo("TV", null, BigDecimal.TEN, null, 1L, 1L, 24);
+
+        tv.actualizar("TV 55", null, BigDecimal.ONE, null, 1L, null);
+        assertEquals(24, tv.getMesesGarantia());
+
+        tv.actualizar("TV 55", null, BigDecimal.ONE, null, 1L, 6);
+        assertEquals(6, tv.getMesesGarantia());
+    }
+
+    @Test
     void laCedulaEsOpcional_yAlLlenarseSoloLlevaDigitos() {
         Usuario cliente = Usuario.nuevo("Ana", "ana@correo.com", "hash", Rol.CLIENTE, null, null);
         cliente.asignarCedula(null);
