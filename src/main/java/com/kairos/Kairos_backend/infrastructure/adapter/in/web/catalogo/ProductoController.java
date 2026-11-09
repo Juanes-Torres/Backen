@@ -76,6 +76,6 @@ public class ProductoController {
     }
 
     private ProductoCommand aCommand(ProductoRequest r) {
-        return new ProductoCommand(r.nombre(), r.descripcion(), r.precio(), r.marca(), r.idCategoria());
+        return new ProductoCommand(r.nombre(), r.descripcion(), r.precio(), r.marca(), r.idCategoria(), r.mesesGarantia());
     }
 }

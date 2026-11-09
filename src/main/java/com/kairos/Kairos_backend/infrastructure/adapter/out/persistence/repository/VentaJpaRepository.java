@@ -1,5 +1,6 @@
 package com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.repository;
 
+import com.kairos.Kairos_backend.application.port.out.CompraConGarantia;
 import com.kairos.Kairos_backend.application.port.out.LineaVentaDetalle;
 import com.kairos.Kairos_backend.application.port.out.VentaResumen;
 import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.entity.VentaEntity;
@@ -52,6 +53,36 @@ public interface VentaJpaRepository extends JpaRepository<VentaEntity, Long> {
             WHERE v.id = :idVenta
             """)
     Optional<VentaResumen> buscarResumen(@Param("idVenta") Long idVenta);
+
+    /** Productos comprados por el cliente con esa cédula en la empresa, con su plazo de garantía. */
+    @Query("""
+            SELECT new com.kairos.Kairos_backend.application.port.out.CompraConGarantia(
+                v.id, v.numeroFactura, v.fecha, a.id, a.nombre, c.id, c.nombre, c.cedula,
+                p.id, p.nombre, d.cantidad, p.mesesGarantia)
+            FROM VentaEntity v
+            JOIN v.detalles d
+            JOIN ProductoEntity p ON p.id = d.idProducto
+            JOIN AlmacenEntity a ON a.id = v.idAlmacen
+            JOIN UsuarioEntity c ON c.id = v.idCliente
+            WHERE v.idEmpresa = :idEmpresa AND c.cedula = :cedula
+            ORDER BY v.fecha DESC, p.nombre
+            """)
+    List<CompraConGarantia> comprasPorCedula(@Param("idEmpresa") Long idEmpresa, @Param("cedula") String cedula);
+
+    /** Productos de una factura de la empresa, con su plazo de garantía (LEFT JOIN: puede no tener cliente). */
+    @Query("""
+            SELECT new com.kairos.Kairos_backend.application.port.out.CompraConGarantia(
+                v.id, v.numeroFactura, v.fecha, a.id, a.nombre, c.id, c.nombre, c.cedula,
+                p.id, p.nombre, d.cantidad, p.mesesGarantia)
+            FROM VentaEntity v
+            JOIN v.detalles d
+            JOIN ProductoEntity p ON p.id = d.idProducto
+            JOIN AlmacenEntity a ON a.id = v.idAlmacen
+            LEFT JOIN UsuarioEntity c ON c.id = v.idCliente
+            WHERE v.idEmpresa = :idEmpresa AND v.numeroFactura = :factura
+            ORDER BY p.nombre
+            """)
+    List<CompraConGarantia> comprasPorFactura(@Param("idEmpresa") Long idEmpresa, @Param("factura") String factura);
 
     /** Líneas de la factura con el nombre del producto. */
     @Query("""

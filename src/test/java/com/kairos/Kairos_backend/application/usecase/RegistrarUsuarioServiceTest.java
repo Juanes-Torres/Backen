@@ -105,7 +105,7 @@ class RegistrarUsuarioServiceTest {
     }
 
     private RegistrarClienteCommand comando(String email) {
-        return new RegistrarClienteCommand("Ana Ruiz", email, "secreta123", null);
+        return new RegistrarClienteCommand("Ana Ruiz", email, "secreta123", null, null);
     }
 
     private RegistrarEmpleadoCommand empleado(Rol rol) {

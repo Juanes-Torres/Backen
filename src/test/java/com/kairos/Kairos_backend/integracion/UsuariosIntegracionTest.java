@@ -36,6 +36,28 @@ class UsuariosIntegracionTest extends PruebaIntegracion {
     }
 
     @Test
+    void elClienteSeRegistraConSuCedula_queNoSePuedeRepetir() throws Exception {
+        String cedula = String.valueOf(System.nanoTime()).substring(0, 10);
+
+        mvc.perform(json(post("/api/usuarios"),
+                        "{\"nombre\":\"Con Cedula\",\"email\":\"" + unico("cc") + "@correo.com\",\"password\":\"" + PASSWORD
+                                + "\",\"cedula\":\"" + cedula + "\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.cedula").value(cedula));
+
+        mvc.perform(json(post("/api/usuarios"),
+                        "{\"nombre\":\"Otra\",\"email\":\"" + unico("cc") + "@correo.com\",\"password\":\"" + PASSWORD
+                                + "\",\"cedula\":\"" + cedula + "\"}"))
+                .andExpect(status().isConflict());
+
+        mvc.perform(json(post("/api/usuarios"),
+                        "{\"nombre\":\"Mala\",\"email\":\"" + unico("cc") + "@correo.com\",\"password\":\"" + PASSWORD
+                                + "\",\"cedula\":\"10.203.040\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.cedula").exists());
+    }
+
+    @Test
     void registroPublico_creaUnClienteSinDevolverLaContrasena() throws Exception {
         String email = unico("cliente") + "@correo.com";
 

@@ -20,10 +20,18 @@ public class Usuario {
     private final Long idEmpresa;
     private final LocalDate fechaRegistro;
     private boolean activo;
+    private String cedula;           // opcional: con ella se buscan sus compras y garantías
+
+    /** Reconstruye un usuario que YA existe en la base de datos (sin cédula). */
+    public Usuario(Long id, String nombre, String email, String passwordHash, Rol rol,
+                   String telefono, Long idAlmacen, Long idEmpresa, LocalDate fechaRegistro, boolean activo) {
+        this(id, nombre, email, passwordHash, rol, telefono, idAlmacen, idEmpresa, fechaRegistro, activo, null);
+    }
 
     /** Reconstruye un usuario que YA existe en la base de datos. */
     public Usuario(Long id, String nombre, String email, String passwordHash, Rol rol,
-                   String telefono, Long idAlmacen, Long idEmpresa, LocalDate fechaRegistro, boolean activo) {
+                   String telefono, Long idAlmacen, Long idEmpresa, LocalDate fechaRegistro, boolean activo,
+                   String cedula) {
         this.id = id;
         this.nombre = nombre == null ? null : nombre.trim();
         this.email = email == null ? null : email.trim().toLowerCase();
@@ -35,6 +43,23 @@ public class Usuario {
         this.fechaRegistro = fechaRegistro;
         this.activo = activo;
         validar();
+        asignarCedula(cedula);
+    }
+
+    /**
+     * La cédula es opcional (los usuarios antiguos no la tienen). Si se envía, solo números,
+     * entre 5 y 15 dígitos. Que no se repita lo garantiza la base de datos.
+     */
+    public void asignarCedula(String nuevaCedula) {
+        String limpia = nuevaCedula == null ? null : nuevaCedula.trim();
+        if (limpia == null || limpia.isEmpty()) {
+            this.cedula = null;
+            return;
+        }
+        if (!limpia.matches("\\d{5,15}")) {
+            throw new ReglaNegocioException("La cédula debe tener entre 5 y 15 dígitos, sin puntos ni letras");
+        }
+        this.cedula = limpia;
     }
 
     /** Crea un usuario NUEVO sin empresa (el id lo asigna la base de datos al guardar). */
@@ -123,4 +148,5 @@ public class Usuario {
     public Long getIdEmpresa() { return idEmpresa; }
     public LocalDate getFechaRegistro() { return fechaRegistro; }
     public boolean isActivo() { return activo; }
+    public String getCedula() { return cedula; }
 }
