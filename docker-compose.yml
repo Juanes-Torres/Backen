@@ -61,6 +61,9 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       # Logs en JSON por la consola: Grafana + Loki los leen directo de Docker (factor XI)
       LOGGING_STRUCTURED_FORMAT_CONSOLE: ${LOG_FORMAT:-ecs}
+      # Zona horaria de Colombia: sin esto el contenedor usa UTC (5 horas adelante) y las ventas
+      # hechas en la noche quedan con la fecha del día siguiente (factor III)
+      TZ: ${TZ:-America/Bogota}
     ports:
       - "${SERVER_PORT:-8080}:8080"
     restart: unless-stopped

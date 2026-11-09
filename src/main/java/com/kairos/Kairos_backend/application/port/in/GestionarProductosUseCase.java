@@ -29,7 +29,7 @@ public interface GestionarProductosUseCase {
             BigDecimal precio,
             String marca,
             Long idCategoria,
-            Integer mesesGarantia      // nulo = 12 meses
+            Integer mesesGarantia      // nulo: al crear, 12 meses; al editar, conserva el que tenía
     ) {
     }
 }
