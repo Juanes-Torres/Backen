@@ -27,18 +27,18 @@ public class ConsultarGarantiasService implements ConsultarGarantiasUseCase {
 
     @Override
     public List<GarantiaDeProducto> consultar(Solicitante solicitante, String cedula, String factura) {
-        boolean porCedula = cedula != null && !cedula.isBlank();
-        boolean porFactura = factura != null && !factura.isBlank();
-        if (porCedula == porFactura) {
+        String cedulaLimpia = limpio(cedula);
+        String facturaLimpia = limpio(factura);
+        if ((cedulaLimpia == null) == (facturaLimpia == null)) {
             throw new ReglaNegocioException("Envíe la cédula o el número de factura (solo uno de los dos)");
         }
         if (solicitante.idEmpresa() == null) {
             throw new ReglaNegocioException("Solo los empleados de una empresa consultan garantías");
         }
 
-        List<CompraConGarantia> compras = porCedula
-                ? consultaGarantias.comprasPorCedula(solicitante.idEmpresa(), cedula.trim())
-                : consultaGarantias.comprasPorFactura(solicitante.idEmpresa(), factura.trim().toUpperCase());
+        List<CompraConGarantia> compras = cedulaLimpia != null
+                ? consultaGarantias.comprasPorCedula(solicitante.idEmpresa(), cedulaLimpia)
+                : consultaGarantias.comprasPorFactura(solicitante.idEmpresa(), String.valueOf(facturaLimpia).toUpperCase());
 
         LocalDate hoy = LocalDate.now(reloj);
         return compras.stream().map(compra -> {
@@ -46,5 +46,10 @@ public class ConsultarGarantiasService implements ConsultarGarantiasUseCase {
             Garantia garantia = new Garantia(compra.fechaCompra().toLocalDate(), compra.mesesGarantia());
             return new GarantiaDeProducto(compra, garantia.fechaFin(), garantia.vigenteEl(hoy));
         }).toList();
+    }
+
+    /** Texto sin espacios a los lados; vacío o nulo cuenta como "no enviado". */
+    private static String limpio(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.trim();
     }
 }
