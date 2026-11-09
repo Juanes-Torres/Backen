@@ -29,7 +29,7 @@ public record ProductoRequest(
         @NotNull(message = "La categoría es obligatoria")
         Long idCategoria,
 
-        /** Opcional: si no se envía, el producto tiene 12 meses de garantía. */
+        /** Opcional: al crear, si no se envía son 12 meses; al editar, si no se envía se conserva. */
         @Min(value = 0, message = "Los meses de garantía no pueden ser negativos")
         @Max(value = 120, message = "Máximo 120 meses de garantía")
         Integer mesesGarantia
