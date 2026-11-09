@@ -122,6 +122,14 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- SDK oficial de Anthropic: el asistente virtual le pregunta a Claude (SCRUM-77).
+		     Aprobado por Juan Esteban el 2026-11-09. Queda apagado por defecto (kairos.asistente.enabled=false). -->
+		<dependency>
+			<groupId>com.anthropic</groupId>
+			<artifactId>anthropic-java</artifactId>
+			<version>3.3.0</version>
+		</dependency>
+
 		<!-- Swagger / OpenAPI: documentación y pruebas de la API en /swagger-ui.html -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
