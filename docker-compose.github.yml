@@ -50,6 +50,8 @@ services:
         condition: service_healthy   # espera a que PostgreSQL acepte conexiones
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-desarrollo}
+      # Zona horaria de Colombia (sin esto el contenedor usa UTC)
+      TZ: ${TZ:-America/Bogota}
       # Dentro de Docker la base de datos se llama "db" (el nombre del servicio)
       DB_URL: jdbc:postgresql://db:5432/kairos_db
       DB_USERNAME: ${DB_USERNAME:-kairos}
