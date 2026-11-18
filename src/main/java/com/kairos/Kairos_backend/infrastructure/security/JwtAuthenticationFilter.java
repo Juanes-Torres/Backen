@@ -1,11 +1,14 @@
 package com.kairos.Kairos_backend.infrastructure.security;
 
+import com.kairos.Kairos_backend.domain.model.Rol;
+import com.kairos.Kairos_backend.infrastructure.logging.ContextoLog;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -43,13 +46,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(PREFIJO.length());
             try {
                 Claims claims = jwtService.leerClaims(token);
-                String email = claims.getSubject();
                 String rol = claims.get("rol", String.class);
+                Number idEmpresa = claims.get("idEmpresa", Number.class);   // solo empleados
+                var usuario = new UsuarioAutenticado(
+                        claims.get("id", Number.class).longValue(),
+                        claims.getSubject(),
+                        Rol.valueOf(rol),
+                        idEmpresa == null ? null : idEmpresa.longValue());
 
                 // "ROLE_ADMINISTRADOR", "ROLE_VENDEDOR"... es lo que usa hasRole(...)
                 var autenticacion = new UsernamePasswordAuthenticationToken(
-                        email, null, List.of(new SimpleGrantedAuthority("ROLE_" + rol)));
+                        usuario, null, List.of(new SimpleGrantedAuthority("ROLE_" + rol)));
                 SecurityContextHolder.getContext().setAuthentication(autenticacion);
+
+                // Desde aquí, cada línea de log de esta petición dice quién la hizo (sin email: es dato personal)
+                MDC.put(ContextoLog.ID_USUARIO, String.valueOf(usuario.id()));
+                if (usuario.idEmpresa() != null) {
+                    MDC.put(ContextoLog.ID_EMPRESA, String.valueOf(usuario.idEmpresa()));
+                }
 
             } catch (JwtException | IllegalArgumentException e) {
                 // Token alterado o vencido: se sigue como anónimo y Spring responderá 401

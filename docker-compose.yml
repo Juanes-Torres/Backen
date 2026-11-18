@@ -1,0 +1,95 @@
+# =========================================================
+# KAIRÓS - frontend + backend + PostgreSQL con un solo comando
+#   1. Copia .env.example como .env y llena los valores
+#   2. docker compose up --build
+#   3. Página en http://localhost:5173  ·  API en http://localhost:8080
+#      Swagger en http://localhost:8080/swagger-ui.html
+# Detener: docker compose down   (los datos se conservan en el volumen)
+# Borrar también los datos: docker compose down -v
+# =========================================================
+
+services:
+
+  db:
+    image: postgres:18
+    container_name: kairos-db
+    environment:
+      POSTGRES_DB: kairos_db
+      POSTGRES_USER: ${DB_USERNAME:-kairos}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el archivo .env}
+    volumes:
+      # PostgreSQL 18 guarda sus datos en /var/lib/postgresql
+      - kairos-datos:/var/lib/postgresql
+    ports:
+      # 5433 en tu computadora (el 5432 ya lo usa tu PostgreSQL local)
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-kairos} -d kairos_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build: .
+    image: kairos-backend
+    container_name: kairos-backend
+    depends_on:
+      db:
+        condition: service_healthy   # espera a que PostgreSQL acepte conexiones
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-desarrollo}
+      # Dentro de Docker la base de datos se llama "db" (el nombre del servicio)
+      DB_URL: jdbc:postgresql://db:5432/kairos_db
+      DB_USERNAME: ${DB_USERNAME:-kairos}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el archivo .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@kairos.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Falta ADMIN_PASSWORD en el archivo .env}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-superadmin@kairos.com}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:?Falta SUPERADMIN_PASSWORD en el archivo .env}
+      # Correo de bienvenida (opcional: si no se llena, queda apagado)
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      # APIs externas (públicas, sin clave): el contenedor necesita salida a internet
+      APIS_TIMEOUT_MS: ${APIS_TIMEOUT_MS:-5000}
+      CODIGO_BARRAS_API_URL: ${CODIGO_BARRAS_API_URL:-https://api.upcitemdb.com}
+      QR_API_URL: ${QR_API_URL:-https://api.qrserver.com}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      # Logs en JSON por la consola: Grafana + Loki los leen directo de Docker (factor XI)
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: ${LOG_FORMAT:-ecs}
+      # Zona horaria de Colombia: sin esto el contenedor usa UTC (5 horas adelante) y las ventas
+      # hechas en la noche quedan con la fecha del día siguiente (factor III)
+      TZ: ${TZ:-America/Bogota}
+      # Asistente virtual con IA (apagado si no hay clave)
+      ASISTENTE_ENABLED: ${ASISTENTE_ENABLED:-false}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ASISTENTE_MODELO: ${ASISTENTE_MODELO:-claude-opus-5-5}
+      ASISTENTE_LIMITE_DIARIO: ${ASISTENTE_LIMITE_DIARIO:-30}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    restart: unless-stopped
+
+  frontend:
+    # El frontend está en OTRO repositorio (Juanes-Torres/Frontend).
+    # FRONTEND_PATH es la carpeta donde lo tienes, relativa a esta carpeta.
+    build:
+      context: ${FRONTEND_PATH:-../Kairos-frontend}
+    image: kairos-frontend
+    container_name: kairos-frontend
+    environment:
+      # Dirección del backend que usa el NAVEGADOR (no el contenedor): por eso es
+      # localhost y no "backend". El frontend la lee al arrancar (no al compilar)
+      API_URL: http://localhost:${SERVER_PORT:-8080}
+    depends_on:
+      - backend
+    ports:
+      # 5173, el mismo puerto de "npm run dev": así coincide con CORS_ORIGINS
+      - "${FRONTEND_PORT:-5173}:80"
+    restart: unless-stopped
+
+volumes:
+  kairos-datos:

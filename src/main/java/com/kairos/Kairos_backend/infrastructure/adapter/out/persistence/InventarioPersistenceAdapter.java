@@ -35,20 +35,25 @@ public class InventarioPersistenceAdapter implements InventarioRepositoryPort {
     }
 
     @Override
+    public Optional<Inventario> buscarParaDescontar(Long idProducto, Long idAlmacen) {
+        return jpaRepository.findByIdProductoAndIdAlmacen(idProducto, idAlmacen).map(InventarioMapper::toDomain);
+    }
+
+    @Override
     public boolean existePorProducto(Long idProducto) {
         return jpaRepository.existsByIdProducto(idProducto);
     }
 
     @Override
-    public List<InventarioDetalle> listarDetalle(Long idAlmacen) {
+    public List<InventarioDetalle> listarDetalle(Long idEmpresa, Long idAlmacen) {
         return idAlmacen == null
-                ? jpaRepository.listarDetalle()
-                : jpaRepository.listarDetallePorAlmacen(idAlmacen);
+                ? jpaRepository.listarDetalle(idEmpresa)
+                : jpaRepository.listarDetallePorAlmacen(idEmpresa, idAlmacen);
     }
 
     @Override
-    public List<InventarioDetalle> listarBajoStock() {
-        return jpaRepository.listarBajoStock();
+    public List<InventarioDetalle> listarBajoStock(Long idEmpresa) {
+        return jpaRepository.listarBajoStock(idEmpresa);
     }
 
     @Override

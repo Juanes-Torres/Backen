@@ -18,5 +18,5 @@ public interface UsuarioRepositoryPort {
 
     boolean existePorEmail(String email);
 
-    List<Usuario> listarTodos();
+    List<Usuario> listarPorEmpresa(Long idEmpresa);
 }

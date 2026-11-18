@@ -11,11 +11,11 @@ public final class AlmacenMapper {
 
     public static AlmacenEntity toEntity(Almacen a) {
         return new AlmacenEntity(a.getId(), a.getNombre(), a.getCiudad(),
-                a.getDireccion(), a.getEstado().name());
+                a.getDireccion(), a.getEstado().name(), a.getIdEmpresa());
     }
 
     public static Almacen toDomain(AlmacenEntity e) {
         return new Almacen(e.getId(), e.getNombre(), e.getCiudad(),
-                e.getDireccion(), EstadoAlmacen.valueOf(e.getEstado()));
+                e.getDireccion(), EstadoAlmacen.valueOf(e.getEstado()), e.getIdEmpresa());
     }
 }

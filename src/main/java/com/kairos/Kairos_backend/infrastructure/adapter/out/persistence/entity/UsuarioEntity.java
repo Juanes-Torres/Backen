@@ -39,17 +39,24 @@ public class UsuarioEntity {
     @Column(name = "id_almacen")
     private Long idAlmacen;
 
+    @Column(name = "id_empresa")
+    private Long idEmpresa;
+
     @Column(name = "fecha_registro", nullable = false)
     private LocalDate fechaRegistro;
 
     @Column(name = "activo", nullable = false)
     private boolean activo;
 
+    @Column(name = "cedula", unique = true, length = 15)
+    private String cedula;
+
     protected UsuarioEntity() {
     }
 
     public UsuarioEntity(Long id, String nombre, String email, String passwordHash, String rol,
-                         String telefono, Long idAlmacen, LocalDate fechaRegistro, boolean activo) {
+                         String telefono, Long idAlmacen, Long idEmpresa, LocalDate fechaRegistro, boolean activo,
+                         String cedula) {
         this.id = id;
         this.nombre = nombre;
         this.email = email;
@@ -57,8 +64,10 @@ public class UsuarioEntity {
         this.rol = rol;
         this.telefono = telefono;
         this.idAlmacen = idAlmacen;
+        this.idEmpresa = idEmpresa;
         this.fechaRegistro = fechaRegistro;
         this.activo = activo;
+        this.cedula = cedula;
     }
 
     public Long getId() { return id; }
@@ -68,6 +77,8 @@ public class UsuarioEntity {
     public String getRol() { return rol; }
     public String getTelefono() { return telefono; }
     public Long getIdAlmacen() { return idAlmacen; }
+    public Long getIdEmpresa() { return idEmpresa; }
     public LocalDate getFechaRegistro() { return fechaRegistro; }
     public boolean isActivo() { return activo; }
+    public String getCedula() { return cedula; }
 }

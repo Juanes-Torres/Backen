@@ -39,7 +39,8 @@ public class UsuarioPersistenceAdapter implements UsuarioRepositoryPort {
     }
 
     @Override
-    public List<Usuario> listarTodos() {
-        return jpaRepository.findAll().stream().map(UsuarioMapper::toDomain).toList();
+    public List<Usuario> listarPorEmpresa(Long idEmpresa) {
+        return jpaRepository.findByIdEmpresaOrderByNombreAsc(idEmpresa).stream()
+                .map(UsuarioMapper::toDomain).toList();
     }
 }

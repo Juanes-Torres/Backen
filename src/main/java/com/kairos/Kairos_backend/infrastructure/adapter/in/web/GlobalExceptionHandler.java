@@ -4,6 +4,7 @@ import com.kairos.Kairos_backend.domain.exception.CredencialesInvalidasException
 import com.kairos.Kairos_backend.domain.exception.RecursoDuplicadoException;
 import com.kairos.Kairos_backend.domain.exception.RecursoNoEncontradoException;
 import com.kairos.Kairos_backend.domain.exception.ReglaNegocioException;
+import com.kairos.Kairos_backend.domain.exception.ServicioExternoNoDisponibleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -50,6 +51,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RecursoDuplicadoException.class)
     public ResponseEntity<ErrorResponse> duplicado(RecursoDuplicadoException ex) {
         return responder(HttpStatus.CONFLICT, ex.getMessage());                    // 409
+    }
+
+    @ExceptionHandler(ServicioExternoNoDisponibleException.class)
+    public ResponseEntity<ErrorResponse> servicioExterno(ServicioExternoNoDisponibleException ex) {
+        return responder(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());         // 503
     }
 
     // ---------- Seguridad ----------

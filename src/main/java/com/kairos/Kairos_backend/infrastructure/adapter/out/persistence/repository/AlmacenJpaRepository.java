@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface AlmacenJpaRepository extends JpaRepository<AlmacenEntity, Long> {
 
-    List<AlmacenEntity> findAllByOrderByNombreAsc();
+    List<AlmacenEntity> findByIdEmpresaOrderByNombreAsc(Long idEmpresa);
 }
