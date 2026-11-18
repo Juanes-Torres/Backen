@@ -52,6 +52,7 @@ class UpcItemDbAdapterTest {
         assertEquals("GENUINE Apple AirPods 2nd Generation", datos.nombre());
         assertEquals("Apple", datos.marca());
         assertNull(datos.descripcion());   // "N/A" se trata como vacío
+        assertEquals(java.util.List.of("x.jpg"), datos.imagenes());   // fotos sugeridas (SCRUM-103)
         api.verify();
     }
 

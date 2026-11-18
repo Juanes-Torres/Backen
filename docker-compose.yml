@@ -41,6 +41,7 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-desarrollo}
       # Dentro de Docker la base de datos se llama "db" (el nombre del servicio)
       DB_URL: jdbc:postgresql://db:5432/kairos_db
+      ARCHIVOS_CARPETA: /app/archivos
       DB_USERNAME: ${DB_USERNAME:-kairos}
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET:?Falta JWT_SECRET en el archivo .env}
@@ -69,6 +70,9 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       ASISTENTE_MODELO: ${ASISTENTE_MODELO:-claude-opus-5-5}
       ASISTENTE_LIMITE_DIARIO: ${ASISTENTE_LIMITE_DIARIO:-30}
+    volumes:
+      # Fotos de los productos: quedan en un volumen y no se pierden al recrear el contenedor
+      - kairos-archivos:/app/archivos
     ports:
       - "${SERVER_PORT:-8080}:8080"
     restart: unless-stopped
@@ -93,3 +97,4 @@ services:
 
 volumes:
   kairos-datos:
+  kairos-archivos:

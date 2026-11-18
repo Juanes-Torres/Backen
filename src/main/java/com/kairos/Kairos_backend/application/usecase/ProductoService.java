@@ -83,11 +83,8 @@ public class ProductoService implements GestionarProductosUseCase {
         productoRepository.eliminar(id);
     }
 
-    /** Un producto de otra empresa se trata igual que uno que no existe. */
     private Producto obtenerDeEmpresa(Long idEmpresa, Long id) {
-        return productoRepository.buscarPorId(id)
-                .filter(producto -> producto.perteneceA(idEmpresa))
-                .orElseThrow(() -> new RecursoNoEncontradoException("No existe un producto con id " + id));
+        return ProductosDeEmpresa.obtener(productoRepository, idEmpresa, id);
     }
 
     private void validarCategoria(Long idCategoria) {

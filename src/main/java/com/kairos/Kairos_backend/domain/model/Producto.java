@@ -21,11 +21,19 @@ public class Producto {
     private Long idCategoria;
     private int mesesGarantia;
     private final Long idEmpresa;
+    /** Dónde está guardada la foto (por ejemplo "productos/15-a1b2.jpg"); nulo = sin foto. */
+    private String imagen;
 
     public Producto(Long id, String nombre, String descripcion, BigDecimal precio,
                     String marca, Long idCategoria, Long idEmpresa, Integer mesesGarantia) {
+        this(id, nombre, descripcion, precio, marca, idCategoria, idEmpresa, mesesGarantia, null);
+    }
+
+    public Producto(Long id, String nombre, String descripcion, BigDecimal precio,
+                    String marca, Long idCategoria, Long idEmpresa, Integer mesesGarantia, String imagen) {
         this.id = id;
         this.idEmpresa = idEmpresa;
+        this.imagen = imagen;
         if (idEmpresa == null) {
             throw new ReglaNegocioException("El producto debe pertenecer a una empresa");
         }
@@ -79,6 +87,25 @@ public class Producto {
         }
     }
 
+    /** Pone o cambia la foto. Devuelve la anterior (nula si no tenía) para poder borrarla. */
+    public String cambiarImagen(String nuevaImagen) {
+        if (nuevaImagen == null || nuevaImagen.isBlank()) {
+            throw new ReglaNegocioException("La ubicación de la imagen es obligatoria");
+        }
+        String anterior = this.imagen;
+        this.imagen = nuevaImagen;
+        return anterior;
+    }
+
+    /** Quita la foto. Devuelve la que tenía (nula si no tenía). */
+    public String quitarImagen() {
+        String anterior = this.imagen;
+        this.imagen = null;
+        return anterior;
+    }
+
+    public boolean tieneImagen() { return imagen != null; }
+
     public boolean perteneceA(Long idEmpresa) { return this.idEmpresa.equals(idEmpresa); }
 
     public Long getId() { return id; }
@@ -89,4 +116,5 @@ public class Producto {
     public Long getIdCategoria() { return idCategoria; }
     public int getMesesGarantia() { return mesesGarantia; }
     public Long getIdEmpresa() { return idEmpresa; }
+    public String getImagen() { return imagen; }
 }

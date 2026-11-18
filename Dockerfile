@@ -23,8 +23,11 @@ RUN mvn -B -q package -DskipTests
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
-# La aplicación NO corre como administrador (root) del contenedor
-RUN useradd --system --no-create-home kairos
+# La aplicación NO corre como administrador (root) del contenedor.
+# /app/archivos guarda las fotos de los productos: es del usuario kairos para que la app pueda
+# escribir en ella. En docker compose se monta un volumen ahí, así las fotos no se pierden.
+RUN useradd --system --no-create-home kairos \
+    && mkdir /app/archivos && chown kairos /app/archivos
 
 COPY --from=compilacion /build/target/*.jar app.jar
 USER kairos
