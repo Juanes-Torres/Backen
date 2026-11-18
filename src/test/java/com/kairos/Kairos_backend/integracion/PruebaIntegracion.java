@@ -22,6 +22,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,8 +89,8 @@ public abstract class PruebaIntegracion {
         return inventarios.guardar(Inventario.nuevo(idProducto, idAlmacen, cantidad, minimo));
     }
 
-    /** Agrega el token JWT del usuario a la petición. */
-    protected MockHttpServletRequestBuilder con(Usuario usuario, MockHttpServletRequestBuilder peticion) {
+    /** Agrega el token JWT del usuario a la petición (normal o de subida de archivos). */
+    protected <B extends AbstractMockHttpServletRequestBuilder<B>> B con(Usuario usuario, B peticion) {
         return peticion.header(HttpHeaders.AUTHORIZATION, "Bearer " + tokens.generarToken(usuario));
     }
 
