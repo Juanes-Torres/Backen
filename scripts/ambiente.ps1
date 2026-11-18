@@ -27,11 +27,17 @@ $porDefectoDesarrollo = @{
     CORS_ORIGINS   = 'http://localhost:5173'
     ADMIN_EMAIL    = 'admin@kairos.com'
     ADMIN_PASSWORD = 'Admin123*'
+    SUPERADMIN_EMAIL    = 'superadmin@kairos.com'
+    SUPERADMIN_PASSWORD = 'Superadmin123*'
+    FRONTEND_URL   = 'http://localhost:5173'
 }
-$variables = 'DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'CORS_ORIGINS', 'ADMIN_EMAIL', 'ADMIN_PASSWORD'
+$variables = 'DB_URL', 'DB_USERNAME', 'DB_PASSWORD', 'JWT_SECRET', 'CORS_ORIGINS', 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'SUPERADMIN_EMAIL', 'SUPERADMIN_PASSWORD', 'FRONTEND_URL'
+
+# Opcionales en todos los ambientes (si no estan, se usan sus valores por defecto; sin MAIL_* el correo queda apagado)
+$opcionalesCorreo = 'MAIL_ENABLED', 'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_HOST', 'MAIL_PORT', 'JWT_EXPIRATION_MS', 'APIS_TIMEOUT_MS', 'CODIGO_BARRAS_API_URL', 'QR_API_URL', 'LOG_LEVEL', 'LOG_FORMAT', 'LOG_FILE', 'TZ', 'ASISTENTE_ENABLED', 'ANTHROPIC_API_KEY', 'ASISTENTE_MODELO', 'ASISTENTE_LIMITE_DIARIO', 'ASISTENTE_TIMEOUT_MS', 'ASISTENTE_URL'
 
 function Ocultar([string]$nombre, [string]$valor) {
-    if ($nombre -match 'PASSWORD|SECRET') { return '****' }
+    if ($nombre -match 'PASSWORD|SECRET|API_KEY') { return '****' }
     return $valor
 }
 
@@ -74,6 +80,16 @@ if ($puerto) {
 } else {
     $puerto = '8080'
     $tabla += [PSCustomObject]@{ Variable = 'SERVER_PORT'; Valor = $puerto; Origen = 'valor por defecto (opcional)' }
+}
+foreach ($v in $opcionalesCorreo) {
+    $valor = [Environment]::GetEnvironmentVariable($v)
+    if ($valor) {
+        $tabla += [PSCustomObject]@{ Variable = $v; Valor = (Ocultar $v $valor); Origen = 'variable de entorno' }
+    } elseif ($Ambiente -eq 'desarrollo') {
+        $tabla += [PSCustomObject]@{ Variable = $v; Valor = '-'; Origen = 'opcional (o en secrets.properties)' }
+    } else {
+        $tabla += [PSCustomObject]@{ Variable = $v; Valor = '-'; Origen = 'opcional (correo apagado)' }
+    }
 }
 $tabla | Format-Table -AutoSize | Out-String | Write-Host
 

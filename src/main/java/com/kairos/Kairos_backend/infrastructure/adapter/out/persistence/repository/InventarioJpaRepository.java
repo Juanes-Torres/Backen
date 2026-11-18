@@ -2,7 +2,9 @@ package com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.reposit
 
 import com.kairos.Kairos_backend.application.port.out.InventarioDetalle;
 import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.entity.InventarioEntity;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -15,7 +17,12 @@ public interface InventarioJpaRepository extends JpaRepository<InventarioEntity,
 
     boolean existsByIdProducto(Long idProducto);
 
+    /** SELECT ... FOR UPDATE: bloquea la fila hasta que termine la venta. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<InventarioEntity> findByIdProductoAndIdAlmacen(Long idProducto, Long idAlmacen);
+
     // Consultas JPQL: une inventario + producto + almacén para traer también los nombres.
+    // El filtro por empresa va sobre el almacén: el inventario es de la empresa dueña de la sede.
     // "new ...InventarioDetalle(...)" crea directamente el record con el resultado.
 
     @Query("""
@@ -24,9 +31,10 @@ public interface InventarioJpaRepository extends JpaRepository<InventarioEntity,
             FROM InventarioEntity i
             JOIN ProductoEntity p ON p.id = i.idProducto
             JOIN AlmacenEntity a ON a.id = i.idAlmacen
+            WHERE a.idEmpresa = :idEmpresa
             ORDER BY a.nombre, p.nombre
             """)
-    List<InventarioDetalle> listarDetalle();
+    List<InventarioDetalle> listarDetalle(@Param("idEmpresa") Long idEmpresa);
 
     @Query("""
             SELECT new com.kairos.Kairos_backend.application.port.out.InventarioDetalle(
@@ -34,10 +42,11 @@ public interface InventarioJpaRepository extends JpaRepository<InventarioEntity,
             FROM InventarioEntity i
             JOIN ProductoEntity p ON p.id = i.idProducto
             JOIN AlmacenEntity a ON a.id = i.idAlmacen
-            WHERE i.idAlmacen = :idAlmacen
+            WHERE a.idEmpresa = :idEmpresa AND i.idAlmacen = :idAlmacen
             ORDER BY p.nombre
             """)
-    List<InventarioDetalle> listarDetallePorAlmacen(@Param("idAlmacen") Long idAlmacen);
+    List<InventarioDetalle> listarDetallePorAlmacen(@Param("idEmpresa") Long idEmpresa,
+                                                    @Param("idAlmacen") Long idAlmacen);
 
     @Query("""
             SELECT new com.kairos.Kairos_backend.application.port.out.InventarioDetalle(
@@ -45,10 +54,10 @@ public interface InventarioJpaRepository extends JpaRepository<InventarioEntity,
             FROM InventarioEntity i
             JOIN ProductoEntity p ON p.id = i.idProducto
             JOIN AlmacenEntity a ON a.id = i.idAlmacen
-            WHERE i.cantidadDisponible < i.stockMinimo
+            WHERE a.idEmpresa = :idEmpresa AND i.cantidadDisponible < i.stockMinimo
             ORDER BY a.nombre, p.nombre
             """)
-    List<InventarioDetalle> listarBajoStock();
+    List<InventarioDetalle> listarBajoStock(@Param("idEmpresa") Long idEmpresa);
 
     @Query("""
             SELECT new com.kairos.Kairos_backend.application.port.out.InventarioDetalle(

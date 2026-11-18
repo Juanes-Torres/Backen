@@ -23,6 +23,33 @@ class UsuarioTest {
     }
 
     @Test
+    void crearClienteConEmpresa_lanzaError() {
+        assertThrows(ReglaNegocioException.class, () ->
+                Usuario.nuevo("Ana", "ana@correo.com", "hash", Rol.CLIENTE, null, null, 1L));
+    }
+
+    @Test
+    void crearEmpleadoSinEmpresa_lanzaError() {
+        assertThrows(ReglaNegocioException.class, () ->
+                Usuario.nuevo("Ana", "ana@kairos.com", "hash", Rol.VENDEDOR, null, 5L, null));
+        assertThrows(ReglaNegocioException.class, () ->
+                Usuario.nuevo("Ana", "ana@kairos.com", "hash", Rol.ADMINISTRADOR, null, null, null));
+    }
+
+    @Test
+    void crearSuperadminConEmpresa_lanzaError() {
+        assertThrows(ReglaNegocioException.class, () ->
+                Usuario.nuevo("Root", "root@kairos.com", "hash", Rol.SUPERADMIN, null, null, 1L));
+    }
+
+    @Test
+    void crearAdministradorDeEmpresa_guardaLaEmpresa() {
+        Usuario admin = Usuario.nuevo("Ana", "ana@empresa.com", "hash", Rol.ADMINISTRADOR, null, null, 7L);
+
+        assertEquals(7L, admin.getIdEmpresa());
+    }
+
+    @Test
     void crearUsuarioConEmailInvalido_lanzaError() {
         assertThrows(ReglaNegocioException.class, () ->
                 Usuario.nuevo("Ana", "correo-sin-arroba", "hash", Rol.CLIENTE, null, null));

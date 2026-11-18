@@ -33,17 +33,25 @@ public class ProductoEntity {
     @Column(name = "id_categoria", nullable = false)
     private Long idCategoria;
 
+    @Column(name = "id_empresa", nullable = false)
+    private Long idEmpresa;
+
+    @Column(name = "meses_garantia", nullable = false)
+    private Integer mesesGarantia;
+
     protected ProductoEntity() {
     }
 
     public ProductoEntity(Long id, String nombre, String descripcion, BigDecimal precio,
-                          String marca, Long idCategoria) {
+                          String marca, Long idCategoria, Long idEmpresa, Integer mesesGarantia) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.precio = precio;
         this.marca = marca;
         this.idCategoria = idCategoria;
+        this.idEmpresa = idEmpresa;
+        this.mesesGarantia = mesesGarantia;
     }
 
     public Long getId() { return id; }
@@ -52,4 +60,6 @@ public class ProductoEntity {
     public BigDecimal getPrecio() { return precio; }
     public String getMarca() { return marca; }
     public Long getIdCategoria() { return idCategoria; }
+    public Long getIdEmpresa() { return idEmpresa; }
+    public Integer getMesesGarantia() { return mesesGarantia; }
 }

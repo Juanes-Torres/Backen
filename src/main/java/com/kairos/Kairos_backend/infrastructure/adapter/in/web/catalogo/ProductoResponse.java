@@ -10,10 +10,12 @@ public record ProductoResponse(
         String descripcion,
         BigDecimal precio,
         String marca,
-        Long idCategoria
+        Long idCategoria,
+        Long idEmpresa,
+        int mesesGarantia
 ) {
     public static ProductoResponse desde(Producto p) {
         return new ProductoResponse(p.getId(), p.getNombre(), p.getDescripcion(),
-                p.getPrecio(), p.getMarca(), p.getIdCategoria());
+                p.getPrecio(), p.getMarca(), p.getIdCategoria(), p.getIdEmpresa(), p.getMesesGarantia());
     }
 }

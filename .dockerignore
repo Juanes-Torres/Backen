@@ -1,0 +1,13 @@
+# Lo que Docker NO copia al construir la imagen
+target/
+.git/
+.idea/
+.vscode/
+*.iml
+Claude outputs/
+docs/
+scripts/
+
+# Secretos: nunca dentro de la imagen
+.env
+secrets.properties

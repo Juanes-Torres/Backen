@@ -1,61 +1,103 @@
 package com.kairos.Kairos_backend.application.usecase;
 
+import com.kairos.Kairos_backend.application.port.in.CrearSuperadminUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase;
 import com.kairos.Kairos_backend.application.port.out.AlmacenRepositoryPort;
+import com.kairos.Kairos_backend.application.port.out.NotificacionPort;
 import com.kairos.Kairos_backend.application.port.out.PasswordEncoderPort;
 import com.kairos.Kairos_backend.application.port.out.UsuarioRepositoryPort;
 import com.kairos.Kairos_backend.domain.exception.RecursoDuplicadoException;
 import com.kairos.Kairos_backend.domain.exception.RecursoNoEncontradoException;
 import com.kairos.Kairos_backend.domain.exception.ReglaNegocioException;
+import com.kairos.Kairos_backend.domain.model.Rol;
 import com.kairos.Kairos_backend.domain.model.Usuario;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RegistrarUsuarioService implements RegistrarUsuarioUseCase {
+public class RegistrarUsuarioService implements RegistrarUsuarioUseCase, CrearSuperadminUseCase {
 
     private static final int LONGITUD_MINIMA_PASSWORD = 6;
 
     private final UsuarioRepositoryPort usuarioRepository;
     private final AlmacenRepositoryPort almacenRepository;
     private final PasswordEncoderPort passwordEncoder;
+    private final NotificacionPort notificacionPort;
 
     public RegistrarUsuarioService(UsuarioRepositoryPort usuarioRepository,
                                    AlmacenRepositoryPort almacenRepository,
-                                   PasswordEncoderPort passwordEncoder) {
+                                   PasswordEncoderPort passwordEncoder,
+                                   NotificacionPort notificacionPort) {
         this.usuarioRepository = usuarioRepository;
         this.almacenRepository = almacenRepository;
         this.passwordEncoder = passwordEncoder;
+        this.notificacionPort = notificacionPort;
     }
 
     @Override
-    public Usuario registrar(RegistrarUsuarioCommand command) {
+    public Usuario registrarCliente(RegistrarClienteCommand command) {
+        // Regla: el registro público siempre crea un CLIENTE y sin almacén
+        return registrar(command.nombre(), command.email(), command.password(),
+                Rol.CLIENTE, command.telefono(), null, null, command.cedula());
+    }
+
+    @Override
+    public Usuario registrarEmpleado(RegistrarEmpleadoCommand command) {
+        // Regla: un empleado nunca es CLIENTE (los clientes usan el registro público)
+        if (command.rol() == Rol.CLIENTE) {
+            throw new ReglaNegocioException("Los clientes se registran por POST /api/usuarios");
+        }
+        // Regla: el superadministrador no se crea desde la API
+        if (command.rol() == Rol.SUPERADMIN) {
+            throw new ReglaNegocioException("No se puede crear un superadministrador");
+        }
+        return registrar(command.nombre(), command.email(), command.password(),
+                command.rol(), command.telefono(), command.idAlmacen(), command.idEmpresa(), null);
+    }
+
+    @Override
+    public Usuario registrarSuperadmin(String nombre, String email, String password) {
+        return registrar(nombre, email, password, Rol.SUPERADMIN, null, null, null, null);
+    }
+
+    /** Pasos comunes a todo registro. */
+    private Usuario registrar(String nombre, String email, String password,
+                              Rol rol, String telefono, Long idAlmacen, Long idEmpresa, String cedula) {
         // 1. La contraseña en texto plano solo existe aquí: validarla antes de cifrarla
-        if (command.password() == null || command.password().length() < LONGITUD_MINIMA_PASSWORD) {
+        if (password == null || password.length() < LONGITUD_MINIMA_PASSWORD) {
             throw new ReglaNegocioException(
                     "La contraseña debe tener al menos " + LONGITUD_MINIMA_PASSWORD + " caracteres");
         }
 
         // 2. El email no puede estar repetido
-        if (command.email() != null && usuarioRepository.existePorEmail(command.email())) {
-            throw new RecursoDuplicadoException("Ya existe un usuario con el email " + command.email());
+        if (email != null && usuarioRepository.existePorEmail(email)) {
+            throw new RecursoDuplicadoException("Ya existe un usuario con el email " + email);
         }
 
-        // 3. Si trae almacén, el almacén debe existir
-        if (command.idAlmacen() != null && !almacenRepository.existePorId(command.idAlmacen())) {
-            throw new RecursoNoEncontradoException("No existe un almacén con id " + command.idAlmacen());
+        // 3. Si trae almacén, debe existir y ser de la misma empresa del empleado
+        boolean almacenValido = idAlmacen == null || almacenRepository.buscarPorId(idAlmacen)
+                .filter(almacen -> almacen.perteneceA(idEmpresa))
+                .isPresent();
+        if (!almacenValido) {
+            throw new RecursoNoEncontradoException("No existe un almacén con id " + idAlmacen);
         }
 
         // 4. El dominio valida sus reglas (nombre, email, rol, vendedor con almacén...)
         Usuario nuevo = Usuario.nuevo(
-                command.nombre(),
-                command.email(),
-                passwordEncoder.cifrar(command.password()),
-                command.rol(),
-                command.telefono(),
-                command.idAlmacen()
+                nombre,
+                email,
+                passwordEncoder.cifrar(password),
+                rol,
+                telefono,
+                idAlmacen,
+                idEmpresa
         );
+        nuevo.asignarCedula(cedula);
 
         // 5. Guardar
-        return usuarioRepository.guardar(nuevo);
+        Usuario guardado = usuarioRepository.guardar(nuevo);
+
+        // 6. Dar la bienvenida: es asíncrono, no bloquea ni hace fallar el registro
+        notificacionPort.enviarBienvenida(guardado);
+        return guardado;
     }
 }

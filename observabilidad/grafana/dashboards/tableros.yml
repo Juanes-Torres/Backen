@@ -1,0 +1,9 @@
+# Carga los tableros (.json) de esta carpeta al arrancar Grafana
+apiVersion: 1
+
+providers:
+  - name: KAIROS
+    folder: KAIRÓS
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards

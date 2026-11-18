@@ -1,0 +1,97 @@
+# =========================================================
+# KAIRÓS - sistema completo SIN descargar el código
+# - Backend: descarga la imagen YA CONSTRUIDA y probada que publica el CD de GitHub
+#   (ghcr.io/juanes-torres/kairos-backend). Por defecto la de produccion; para otra:
+#   KAIROS_VERSION=pre-produccion  o una versión exacta como  KAIROS_VERSION=v2026.11.17-12
+# - Frontend: Docker baja su código de GitHub y lo construye con su Dockerfile.
+#
+# Solo necesitas Docker Desktop y este archivo:
+#   docker compose -f docker-compose.github.yml up --build -d
+#   Traer la última imagen publicada:  docker compose -f docker-compose.github.yml pull
+#   (si lo renombras a docker-compose.yml basta con: docker compose up --build -d)
+#
+# Página:  http://localhost:5173
+# API:     http://localhost:8080   ·  Swagger: http://localhost:8080/swagger-ui.html
+# Admin:   admin@kairos.com / Admin123*
+# Superadmin: superadmin@kairos.com / Superadmin123*
+#
+# Las claves de abajo son SOLO de ejemplo para desarrollo y demostración.
+# Para cambiarlas, crea un archivo .env junto a este (ver .env.example).
+# Detener: docker compose down    ·   Borrar también los datos: docker compose down -v
+# =========================================================
+
+services:
+
+  db:
+    image: postgres:18
+    container_name: kairos-db
+    environment:
+      POSTGRES_DB: kairos_db
+      POSTGRES_USER: ${DB_USERNAME:-kairos}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kairos123}
+    volumes:
+      # PostgreSQL 18 guarda sus datos en /var/lib/postgresql
+      - kairos-datos:/var/lib/postgresql
+    ports:
+      # 5433 afuera para no chocar con un PostgreSQL instalado en el PC
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-kairos} -d kairos_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    # Imagen publicada por el CD (.github/workflows/ci-cd.yml) solo si pasaron todas las pruebas
+    image: ghcr.io/juanes-torres/kairos-backend:${KAIROS_VERSION:-produccion}
+    container_name: kairos-backend
+    depends_on:
+      db:
+        condition: service_healthy   # espera a que PostgreSQL acepte conexiones
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-desarrollo}
+      # Zona horaria de Colombia (sin esto el contenedor usa UTC)
+      TZ: ${TZ:-America/Bogota}
+      # Dentro de Docker la base de datos se llama "db" (el nombre del servicio)
+      DB_URL: jdbc:postgresql://db:5432/kairos_db
+      DB_USERNAME: ${DB_USERNAME:-kairos}
+      DB_PASSWORD: ${DB_PASSWORD:-kairos123}
+      JWT_SECRET: ${JWT_SECRET:-cambia-esta-clave-secreta-de-32-caracteres-min}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@kairos.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin123*}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-superadmin@kairos.com}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-Superadmin123*}
+      # Correo de bienvenida (opcional: si no se llena, queda apagado)
+      MAIL_ENABLED: ${MAIL_ENABLED:-false}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      # Asistente virtual con IA (opcional: sin clave queda apagado)
+      ASISTENTE_ENABLED: ${ASISTENTE_ENABLED:-false}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ASISTENTE_MODELO: ${ASISTENTE_MODELO:-claude-opus-5-5}
+      ASISTENTE_LIMITE_DIARIO: ${ASISTENTE_LIMITE_DIARIO:-30}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      # Repositorio del frontend, rama main. Usa el Dockerfile que está en él.
+      context: https://github.com/Juanes-Torres/Frontend.git#main
+    image: kairos-frontend
+    container_name: kairos-frontend
+    environment:
+      # Dirección del backend que usa el NAVEGADOR (no el contenedor).
+      # El frontend la lee al ARRANCAR (12 factores: III)
+      API_URL: ${API_URL:-http://localhost:${SERVER_PORT:-8080}}
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    restart: unless-stopped
+
+volumes:
+  kairos-datos:

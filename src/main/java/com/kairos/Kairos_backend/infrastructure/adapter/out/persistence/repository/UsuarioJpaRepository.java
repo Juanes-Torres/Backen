@@ -3,6 +3,7 @@ package com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.reposit
 import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.entity.UsuarioEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long> {
@@ -10,4 +11,6 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>
     Optional<UsuarioEntity> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    List<UsuarioEntity> findByIdEmpresaOrderByNombreAsc(Long idEmpresa);
 }

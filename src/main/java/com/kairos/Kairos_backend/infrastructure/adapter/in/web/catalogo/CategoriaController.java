@@ -31,15 +31,19 @@ public class CategoriaController {
         return categorias.listar().stream().map(CategoriaResponse::desde).toList();
     }
 
+    /**
+     * Las categorías son COMPARTIDAS por todas las empresas (SCRUM-57): solo el superadmin
+     * las crea y renombra. Cada empresa las usa para clasificar sus productos.
+     */
     @PostMapping
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasRole('SUPERADMIN')")
     public ResponseEntity<CategoriaResponse> crear(@Valid @RequestBody CategoriaRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CategoriaResponse.desde(categorias.crear(request.nombre())));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMINISTRADOR')")
+    @PreAuthorize("hasRole('SUPERADMIN')")
     public CategoriaResponse renombrar(@PathVariable Long id, @Valid @RequestBody CategoriaRequest request) {
         return CategoriaResponse.desde(categorias.renombrar(id, request.nombre()));
     }

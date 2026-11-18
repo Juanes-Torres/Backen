@@ -1,6 +1,7 @@
 package com.kairos.Kairos_backend.application.usecase;
 
 import com.kairos.Kairos_backend.application.port.in.BuscarUsuarioUseCase;
+import com.kairos.Kairos_backend.application.port.in.Solicitante;
 import com.kairos.Kairos_backend.application.port.out.UsuarioRepositoryPort;
 import com.kairos.Kairos_backend.domain.exception.RecursoNoEncontradoException;
 import com.kairos.Kairos_backend.domain.model.Usuario;
@@ -18,8 +19,9 @@ public class BuscarUsuarioService implements BuscarUsuarioUseCase {
     }
 
     @Override
-    public Usuario buscarPorId(Long id) {
+    public Usuario buscarPorId(Solicitante solicitante, Long id) {
         return usuarioRepository.buscarPorId(id)
+                .filter(usuario -> PermisosUsuario.puedeGestionar(solicitante, usuario))
                 .orElseThrow(() -> new RecursoNoEncontradoException("No existe un usuario con id " + id));
     }
 
@@ -30,7 +32,7 @@ public class BuscarUsuarioService implements BuscarUsuarioUseCase {
     }
 
     @Override
-    public List<Usuario> listar() {
-        return usuarioRepository.listarTodos();
+    public List<Usuario> listar(Solicitante solicitante) {
+        return usuarioRepository.listarPorEmpresa(solicitante.idEmpresa());
     }
 }
