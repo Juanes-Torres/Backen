@@ -12,11 +12,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
@@ -86,6 +90,25 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> tipoIncorrecto(MethodArgumentTypeMismatchException ex) {
         return responder(HttpStatus.BAD_REQUEST,
                 "El valor '" + ex.getValue() + "' no es válido para '" + ex.getName() + "'");
+    }
+
+    // ---------- Subida de archivos (fotos de productos) ----------
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> archivoMuyGrande(MaxUploadSizeExceededException ex) {
+        return responder(HttpStatus.BAD_REQUEST, "La imagen no puede pesar más de 2 MB");
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ErrorResponse> faltaArchivo(MissingServletRequestPartException ex) {
+        return responder(HttpStatus.BAD_REQUEST,
+                "Falta el archivo: envíelo como form-data en el campo '" + ex.getRequestPartName() + "'");
+    }
+
+    @ExceptionHandler({MultipartException.class, HttpMediaTypeNotSupportedException.class})
+    public ResponseEntity<ErrorResponse> formatoDeEnvio(Exception ex) {
+        return responder(HttpStatus.BAD_REQUEST,
+                "El formato del envío no es válido (la imagen va como form-data en el campo 'archivo')");
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

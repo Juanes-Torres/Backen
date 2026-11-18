@@ -63,7 +63,17 @@ public class UpcItemDbAdapter implements CatalogoExternoPort {
                 .filter(item -> item.title() != null && !item.title().isBlank())
                 .findFirst()
                 .map(item -> new DatosProductoExterno(item.title().trim(), vacioSiNoAplica(item.brand()),
-                        vacioSiNoAplica(item.description()), vacioSiNoAplica(item.category())));
+                        vacioSiNoAplica(item.description()), vacioSiNoAplica(item.category()),
+                        imagenes(item.images())));
+    }
+
+    /** Direcciones de fotos que trae el producto (sin repetidas ni vacías; máximo 5 para no tardar). */
+    private static List<String> imagenes(List<String> images) {
+        if (images == null) {
+            return List.of();
+        }
+        return images.stream().filter(url -> url != null && !url.isBlank()).map(String::trim)
+                .distinct().limit(5).toList();
     }
 
     /** UPCitemdb escribe "N/A" cuando no conoce un dato. */
@@ -78,6 +88,6 @@ public class UpcItemDbAdapter implements CatalogoExternoPort {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    record ItemUpc(String title, String brand, String description, String category) {
+    record ItemUpc(String title, String brand, String description, String category, List<String> images) {
     }
 }

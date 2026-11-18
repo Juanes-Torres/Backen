@@ -39,11 +39,14 @@ public class ProductoEntity {
     @Column(name = "meses_garantia", nullable = false)
     private Integer mesesGarantia;
 
+    @Column(name = "imagen", length = 255)
+    private String imagen;
+
     protected ProductoEntity() {
     }
 
     public ProductoEntity(Long id, String nombre, String descripcion, BigDecimal precio,
-                          String marca, Long idCategoria, Long idEmpresa, Integer mesesGarantia) {
+                          String marca, Long idCategoria, Long idEmpresa, Integer mesesGarantia, String imagen) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
@@ -52,6 +55,7 @@ public class ProductoEntity {
         this.idCategoria = idCategoria;
         this.idEmpresa = idEmpresa;
         this.mesesGarantia = mesesGarantia;
+        this.imagen = imagen;
     }
 
     public Long getId() { return id; }
@@ -62,4 +66,5 @@ public class ProductoEntity {
     public Long getIdCategoria() { return idCategoria; }
     public Long getIdEmpresa() { return idEmpresa; }
     public Integer getMesesGarantia() { return mesesGarantia; }
+    public String getImagen() { return imagen; }
 }
