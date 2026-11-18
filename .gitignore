@@ -41,3 +41,6 @@ secrets.properties
 
 ### Logs locales (LOG_FILE) ###
 logs/
+
+# Resultados de JMeter (pesan mucho; el resumen va en docs/pruebas-rendimiento.md)
+pruebas-rendimiento/resultados/
