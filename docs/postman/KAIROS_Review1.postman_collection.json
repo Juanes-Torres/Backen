@@ -936,6 +936,149 @@
               }
             }
           ]
+        },
+        {
+          "name": "Subir foto del producto (admin)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/productos/{{idProducto}}/imagen",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "{{idProducto}}",
+                "imagen"
+              ]
+            },
+            "description": "SCRUM-103. form-data, campo **archivo** (JPG, PNG o WEBP, máximo 2 MB). Se revisa el contenido real del archivo, no su nombre.\n\nSi Postman avisa que no encuentra el archivo, elige cualquier foto en la columna *Value*. Newman usa `docs/postman/foto-producto.png`.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "src": "foto-producto.png"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"El producto ahora tiene imagenUrl\", () => pm.expect(pm.response.json().imagenUrl).to.include(\"/imagen?v=\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver foto del producto (público)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/productos/{{idProducto}}/imagen",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "{{idProducto}}",
+                "imagen"
+              ]
+            },
+            "description": "Público, como el catálogo. Se puede usar directo en `<img src=...>`. El catálogo devuelve la dirección en `imagenUrl`.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Es una imagen PNG\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.eql(\"image/png\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Quitar foto del producto (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/productos/{{idProducto}}/imagen",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "{{idProducto}}",
+                "imagen"
+              ]
+            },
+            "description": "Borra la foto del producto y su archivo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver foto después de quitarla (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/productos/{{idProducto}}/imagen",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "{{idProducto}}",
+                "imagen"
+              ]
+            },
+            "description": "Un producto sin foto responde 404.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Mensaje claro\", () => pm.expect(pm.response.json().mensaje).to.include(\"no tiene imagen\"));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -2297,6 +2440,54 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Código 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Usar la foto del código de barras (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/productos/{{idProducto}}/imagen/codigo-barras",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "{{idProducto}}",
+                "imagen",
+                "codigo-barras"
+              ]
+            },
+            "description": "SCRUM-103. Toma la primera foto que sirva de las que ofrece UPCitemdb para ese código, la descarga y la guarda en KAIRÓS (no queda dependiendo de la otra página). Gasta 1 de las 100 consultas diarias del plan gratis.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigoBarras\": \"190199098572\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// API externa real: 200 si alguna foto sirve, 404 si ninguna, 503 si UPCitemdb no responde",
+                  "pm.test(\"Responde 200, 404 o 503\", () => pm.expect(pm.response.code).to.be.oneOf([200, 404, 503]));",
+                  "if (pm.response.code === 200) { pm.test(\"Quedó con foto\", () => pm.expect(pm.response.json().imagenUrl).to.be.a(\"string\")); }"
                 ]
               }
             }
