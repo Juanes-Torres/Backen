@@ -8,7 +8,7 @@ Con Docker se levantan **PostgreSQL, el backend y el frontend juntos** con un so
 |---|---|
 | `Dockerfile` | La receta de la imagen del backend. Tiene dos etapas: la primera compila con Maven y la segunda solo ejecuta con Java 21, para que la imagen sea más liviana |
 | `docker-compose.yml` | Levanta tres contenedores: `kairos-db` (PostgreSQL 18), `kairos-backend` y `kairos-frontend` |
-| `docker-compose.github.yml` | Igual al anterior, pero descarga el código de GitHub: sirve para levantar KAIRÓS en **otro PC** sin bajar los proyectos (ver abajo) |
+| `docker-compose.github.yml` | Igual al anterior, pero sin bajar los proyectos: descarga la **imagen del backend que publicó el CD** y el código del frontend de GitHub. Sirve para levantar KAIRÓS en **otro PC** (ver abajo) |
 | `.env.example` | Plantilla de las variables y los secretos. Se copia como `.env`, que **no** se sube a GitHub |
 | `.dockerignore` | Lo que Docker no copia a la imagen: `target/`, `.git/`, los secretos… |
 
@@ -46,7 +46,7 @@ Cuando en los logs aparezca `Started KairosBackendApplication`:
 
 ## En otro PC, sin descargar el código
 
-`docker-compose.github.yml` le dice a Docker que construya las imágenes **directo desde GitHub** (backend: rama `desarrollo`; frontend: rama `main`), usando el `Dockerfile` de cada repositorio. Trae claves de ejemplo de desarrollo, así que **no necesita `.env`**.
+`docker-compose.github.yml` **descarga la imagen del backend ya construida y probada** (`ghcr.io/juanes-torres/kairos-backend:produccion`, la publica el CD: ver [ci-cd.md](ci-cd.md)) y construye el frontend **directo desde GitHub** (rama `main`). Trae claves de ejemplo de desarrollo, así que **no necesita `.env`**.
 
 1. Instala y abre Docker Desktop (no hace falta Git, Java ni Node).
 2. Crea una carpeta y copia ahí solo `docker-compose.github.yml` con el nombre `docker-compose.yml`.
@@ -55,7 +55,8 @@ Cuando en los logs aparezca `Started KairosBackendApplication`:
 
 - La base de datos empieza nueva en ese PC (tablas y datos iniciales de Flyway).
 - Para cambiar las claves, crea un `.env` junto al archivo con las variables de `.env.example`. Para algo público o en producción, cámbialas siempre.
-- Construye lo que esté **subido** a GitHub: los cambios que solo tengas en tu PC no aparecen.
+- El backend es la última versión **publicada en produccion**. Para usar la de pre-producción o una versión exacta: `KAIROS_VERSION=pre-produccion` (o `v2026.11.17-12`) en el `.env`. Para traer la imagen más nueva: `docker compose pull`.
+- Los cambios que solo tengas en tu PC no aparecen.
 
 ## Comandos útiles
 
