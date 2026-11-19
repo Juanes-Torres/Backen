@@ -3,6 +3,7 @@ package com.kairos.Kairos_backend.infrastructure.adapter.in.web.usuario;
 import com.kairos.Kairos_backend.application.port.in.ActualizarUsuarioUseCase;
 import com.kairos.Kairos_backend.application.port.in.AutenticarUsuarioUseCase;
 import com.kairos.Kairos_backend.application.port.in.BuscarUsuarioUseCase;
+import com.kairos.Kairos_backend.application.port.in.MarcaEmpresaUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarClienteCommand;
 import com.kairos.Kairos_backend.application.port.in.RegistrarUsuarioUseCase.RegistrarEmpleadoCommand;
@@ -37,15 +38,18 @@ public class UsuarioController {
     private final AutenticarUsuarioUseCase autenticarUsuario;
     private final BuscarUsuarioUseCase buscarUsuario;
     private final ActualizarUsuarioUseCase actualizarUsuario;
+    private final MarcaEmpresaUseCase marca;
 
     public UsuarioController(RegistrarUsuarioUseCase registrarUsuario,
                              AutenticarUsuarioUseCase autenticarUsuario,
                              BuscarUsuarioUseCase buscarUsuario,
-                             ActualizarUsuarioUseCase actualizarUsuario) {
+                             ActualizarUsuarioUseCase actualizarUsuario,
+                             MarcaEmpresaUseCase marca) {
         this.registrarUsuario = registrarUsuario;
         this.autenticarUsuario = autenticarUsuario;
         this.buscarUsuario = buscarUsuario;
         this.actualizarUsuario = actualizarUsuario;
+        this.marca = marca;
     }
 
     /** RF01 - Registro público de clientes. Siempre crea rol CLIENTE. */
@@ -60,7 +64,7 @@ public class UsuarioController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         var resultado = autenticarUsuario.autenticar(request.email(), request.password());
-        var empresa = resultado.empresa() == null ? null : EmpresaResponse.desde(resultado.empresa());
+        var empresa = resultado.empresa() == null ? null : EmpresaResponse.desde(resultado.empresa(), marca.tieneLogo(resultado.empresa().getId()));
         return new LoginResponse(resultado.token(), "Bearer", UsuarioResponse.desde(resultado.usuario()), empresa);
     }
 

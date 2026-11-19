@@ -12,10 +12,16 @@ public record EmpresaResponse(
         String email,
         String telefono,
         EstadoEmpresa estado,
-        LocalDate fechaRegistro
+        LocalDate fechaRegistro,
+        String logoUrl            // nulo si la empresa no tiene logo
 ) {
-    public static EmpresaResponse desde(Empresa e) {
+    public static EmpresaResponse desde(Empresa e, boolean tieneLogo) {
         return new EmpresaResponse(e.getId(), e.getNombre(), e.getNit(), e.getEmail(),
-                e.getTelefono(), e.getEstado(), e.getFechaRegistro());
+                e.getTelefono(), e.getEstado(), e.getFechaRegistro(), tieneLogo ? logoUrl(e.getId()) : null);
+    }
+
+    /** Dirección pública del logo (relativa al backend). Se puede poner directo en un <img src="...">. */
+    public static String logoUrl(Long idEmpresa) {
+        return "/api/empresas/" + idEmpresa + "/logo";
     }
 }

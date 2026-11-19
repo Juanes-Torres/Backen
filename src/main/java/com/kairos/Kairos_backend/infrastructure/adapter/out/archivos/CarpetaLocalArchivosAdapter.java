@@ -66,6 +66,11 @@ public class CarpetaLocalArchivosAdapter implements AlmacenamientoArchivosPort {
     }
 
     @Override
+    public boolean existe(String ruta) {
+        return Files.isRegularFile(resolver(ruta));
+    }
+
+    @Override
     public void borrar(String ruta) {
         try {
             Files.deleteIfExists(resolver(ruta));
