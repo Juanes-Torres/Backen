@@ -10,7 +10,7 @@ public interface DescargaImagenesPort {
     /**
      * Vacío si no se pudo descargar: la dirección no es válida o apunta a la red interna,
      * el servidor no respondió, tardó demasiado o el archivo pesa más de lo permitido.
-     * El contenido NO viene validado: eso lo hace el dominio (ImagenProducto).
+     * El contenido NO viene validado: eso lo hace el dominio (Imagen).
      */
     Optional<byte[]> descargar(String url);
 }

@@ -1,6 +1,6 @@
 package com.kairos.Kairos_backend.application.port.in;
 
-import com.kairos.Kairos_backend.domain.model.ImagenProducto;
+import com.kairos.Kairos_backend.domain.model.Imagen;
 import com.kairos.Kairos_backend.domain.model.Producto;
 
 /**
@@ -10,7 +10,7 @@ import com.kairos.Kairos_backend.domain.model.Producto;
 public interface GestionarImagenProductoUseCase {
 
     /** Foto de un producto visible en el catálogo. 404 si el producto no se ve o no tiene foto. */
-    ImagenProducto ver(Long idProducto);
+    Imagen ver(Long idProducto);
 
     /** Pone o reemplaza la foto con un archivo subido (JPG, PNG o WEBP, máximo 2 MB). */
     Producto subir(Long idEmpresa, Long idProducto, byte[] contenido);

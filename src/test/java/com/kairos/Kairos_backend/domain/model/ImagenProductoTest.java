@@ -29,9 +29,9 @@ class ImagenProductoTest {
 
     @Test
     void reconoceElFormatoPorElContenido() {
-        assertEquals(TipoImagen.PNG, ImagenProducto.desde(PNG).tipo());
-        assertEquals(TipoImagen.JPG, ImagenProducto.desde(JPG).tipo());
-        assertEquals(TipoImagen.WEBP, ImagenProducto.desde(WEBP).tipo());
+        assertEquals(TipoImagen.PNG, Imagen.desde(PNG).tipo());
+        assertEquals(TipoImagen.JPG, Imagen.desde(JPG).tipo());
+        assertEquals(TipoImagen.WEBP, Imagen.desde(WEBP).tipo());
         assertEquals("image/webp", TipoImagen.WEBP.getTipoMime());
         assertEquals("jpg", TipoImagen.JPG.getExtension());
     }
@@ -39,7 +39,7 @@ class ImagenProductoTest {
     @Test
     void unArchivoQueNoEsFoto_noPasaAunqueSeLlamePng() {
         byte[] texto = "<script>alert(1)</script>".getBytes(StandardCharsets.UTF_8);
-        ReglaNegocioException error = assertThrows(ReglaNegocioException.class, () -> ImagenProducto.desde(texto));
+        ReglaNegocioException error = assertThrows(ReglaNegocioException.class, () -> Imagen.desde(texto));
         assertEquals("La imagen debe ser JPG, PNG o WEBP", error.getMessage());
         // "RIFF" sin "WEBP" (por ejemplo un audio .wav) tampoco
         assertTrue(TipoImagen.detectar("RIFF\0\0\0\0WAVEfmt ".getBytes(StandardCharsets.ISO_8859_1)).isEmpty());
@@ -50,31 +50,31 @@ class ImagenProductoTest {
     @Test
     void vaciaOMasDe2MB_noPasa() {
         assertEquals("La imagen está vacía",
-                assertThrows(ReglaNegocioException.class, () -> ImagenProducto.desde(new byte[0])).getMessage());
-        assertThrows(ReglaNegocioException.class, () -> ImagenProducto.desde(null));
+                assertThrows(ReglaNegocioException.class, () -> Imagen.desde(new byte[0])).getMessage());
+        assertThrows(ReglaNegocioException.class, () -> Imagen.desde(null));
 
-        byte[] grande = Arrays.copyOf(PNG, ImagenProducto.TAMANO_MAXIMO_BYTES + 1);
+        byte[] grande = Arrays.copyOf(PNG, Imagen.TAMANO_MAXIMO_BYTES + 1);
         assertEquals("La imagen no puede pesar más de 2 MB",
-                assertThrows(ReglaNegocioException.class, () -> ImagenProducto.desde(grande)).getMessage());
+                assertThrows(ReglaNegocioException.class, () -> Imagen.desde(grande)).getMessage());
         // Justo 2 MB sí pasa
-        ImagenProducto.desde(Arrays.copyOf(PNG, ImagenProducto.TAMANO_MAXIMO_BYTES));
+        Imagen.desde(Arrays.copyOf(PNG, Imagen.TAMANO_MAXIMO_BYTES));
     }
 
     @Test
     void noSePuedeDecirQueEsPngLoQueEsJpg() {
-        assertThrows(ReglaNegocioException.class, () -> new ImagenProducto(JPG, TipoImagen.PNG));
-        assertThrows(ReglaNegocioException.class, () -> new ImagenProducto(JPG, null));
+        assertThrows(ReglaNegocioException.class, () -> new Imagen(JPG, TipoImagen.PNG));
+        assertThrows(ReglaNegocioException.class, () -> new Imagen(JPG, null));
     }
 
     @Test
     void dosImagenesConLosMismosBytesSonIguales_yElTextoNoImprimeLosBytes() {
-        ImagenProducto una = ImagenProducto.desde(PNG);
-        ImagenProducto otra = ImagenProducto.desde(PNG.clone());
+        Imagen una = Imagen.desde(PNG);
+        Imagen otra = Imagen.desde(PNG.clone());
         assertEquals(una, otra);
         assertEquals(una.hashCode(), otra.hashCode());
-        assertNotEquals(una, ImagenProducto.desde(JPG));
+        assertNotEquals(una, Imagen.desde(JPG));
         assertNotEquals(una, "otra cosa");
-        assertEquals("ImagenProducto[PNG, 28 bytes]", una.toString());
+        assertEquals("Imagen[PNG, 28 bytes]", una.toString());
     }
 
     @Test
