@@ -1,5 +1,6 @@
 package com.kairos.Kairos_backend.infrastructure.adapter.in.web.catalogo;
 
+import com.kairos.Kairos_backend.application.port.in.ConsultarCatalogoUseCase;
 import com.kairos.Kairos_backend.application.port.in.ConsultarCodigoBarrasUseCase;
 import com.kairos.Kairos_backend.application.port.in.GestionarProductosUseCase;
 import com.kairos.Kairos_backend.application.port.in.GestionarProductosUseCase.ProductoCommand;
@@ -27,10 +28,13 @@ public class ProductoController {
 
     private final GestionarProductosUseCase productos;
     private final ConsultarCodigoBarrasUseCase codigoBarras;
+    private final ConsultarCatalogoUseCase catalogo;
 
-    public ProductoController(GestionarProductosUseCase productos, ConsultarCodigoBarrasUseCase codigoBarras) {
+    public ProductoController(GestionarProductosUseCase productos, ConsultarCodigoBarrasUseCase codigoBarras,
+                              ConsultarCatalogoUseCase catalogo) {
         this.productos = productos;
         this.codigoBarras = codigoBarras;
+        this.catalogo = catalogo;
     }
 
     /** Solo ADMINISTRADOR: sugiere nombre, marca y descripción a partir del código de barras (API externa). */
@@ -40,17 +44,20 @@ public class ProductoController {
         return DatosCodigoBarrasResponse.desde(codigo, codigoBarras.consultar(codigo));
     }
 
-    /** RF03 - Catálogo público (solo empresas activas) con filtros opcionales. */
+    /**
+     * RF03 - Catálogo público (solo empresas activas) con filtros opcionales. Cada producto trae la
+     * empresa que lo vende, su logo y si está disponible (SCRUM-107).
+     */
     @GetMapping
     public List<ProductoResponse> buscar(@RequestParam(required = false) Long idEmpresa,
                                          @RequestParam(required = false) Long idCategoria,
                                          @RequestParam(required = false) String nombre) {
-        return productos.buscar(idEmpresa, idCategoria, nombre).stream().map(ProductoResponse::desde).toList();
+        return catalogo.buscar(idEmpresa, idCategoria, nombre).stream().map(ProductoResponse::desde).toList();
     }
 
     @GetMapping("/{id}")
     public ProductoResponse obtener(@PathVariable Long id) {
-        return ProductoResponse.desde(productos.obtener(id));
+        return ProductoResponse.desde(catalogo.obtener(id));
     }
 
     @PostMapping

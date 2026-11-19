@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,4 +69,15 @@ public interface InventarioJpaRepository extends JpaRepository<InventarioEntity,
             WHERE i.id = :id
             """)
     Optional<InventarioDetalle> buscarDetallePorId(@Param("id") Long id);
+
+    /** De esos productos, los que tienen unidades en alguna sede ACTIVA (SCRUM-107). Una sola consulta. */
+    @Query("""
+            SELECT i.idProducto
+            FROM InventarioEntity i
+            JOIN AlmacenEntity a ON a.id = i.idAlmacen
+            WHERE i.idProducto IN :ids AND a.estado = 'ACTIVO'
+            GROUP BY i.idProducto
+            HAVING SUM(i.cantidadDisponible) > 0
+            """)
+    List<Long> conStockEnSedesActivas(@Param("ids") Collection<Long> ids);
 }
