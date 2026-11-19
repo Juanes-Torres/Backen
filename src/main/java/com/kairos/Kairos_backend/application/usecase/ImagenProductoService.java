@@ -9,7 +9,7 @@ import com.kairos.Kairos_backend.application.port.out.ProductoRepositoryPort;
 import com.kairos.Kairos_backend.domain.exception.RecursoNoEncontradoException;
 import com.kairos.Kairos_backend.domain.exception.ReglaNegocioException;
 import com.kairos.Kairos_backend.domain.model.CodigoBarras;
-import com.kairos.Kairos_backend.domain.model.ImagenProducto;
+import com.kairos.Kairos_backend.domain.model.Imagen;
 import com.kairos.Kairos_backend.domain.model.Producto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,19 +43,19 @@ public class ImagenProductoService implements GestionarImagenProductoUseCase {
     }
 
     @Override
-    public ImagenProducto ver(Long idProducto) {
+    public Imagen ver(Long idProducto) {
         // Misma regla que el catálogo: un producto de una empresa no activa no se ve
         Producto producto = catalogo.obtener(idProducto);
         return Optional.ofNullable(producto.getImagen())
                 .flatMap(archivos::leer)
-                .map(ImagenProducto::desde)
+                .map(Imagen::desde)
                 .orElseThrow(() -> new RecursoNoEncontradoException("El producto " + idProducto + " no tiene imagen"));
     }
 
     @Override
     public Producto subir(Long idEmpresa, Long idProducto, byte[] contenido) {
         Producto producto = obtenerDeEmpresa(idEmpresa, idProducto);
-        return guardarImagen(producto, ImagenProducto.desde(contenido));   // el dominio valida tipo y tamaño
+        return guardarImagen(producto, Imagen.desde(contenido));   // el dominio valida tipo y tamaño
     }
 
     @Override
@@ -67,7 +67,7 @@ public class ImagenProductoService implements GestionarImagenProductoUseCase {
                         "No se encontró un producto con el código " + codigo.valor()));
         // Muchas de esas direcciones ya no existen o no son fotos: se usa la primera que sirva
         for (String url : datos.imagenes()) {
-            Optional<ImagenProducto> imagen = descargas.descargar(url).flatMap(ImagenProductoService::validar);
+            Optional<Imagen> imagen = descargas.descargar(url).flatMap(ImagenProductoService::validar);
             if (imagen.isPresent()) {
                 return guardarImagen(producto, imagen.get());
             }
@@ -90,7 +90,7 @@ public class ImagenProductoService implements GestionarImagenProductoUseCase {
      * Primero guarda el archivo nuevo y después la base de datos. Si la base falla, se borra el
      * archivo nuevo para no dejar basura; la foto anterior se borra solo cuando todo salió bien.
      */
-    private Producto guardarImagen(Producto producto, ImagenProducto imagen) {
+    private Producto guardarImagen(Producto producto, Imagen imagen) {
         String ruta = CARPETA + producto.getId() + "-" + UUID.randomUUID() + "." + imagen.tipo().getExtension();
         archivos.guardar(ruta, imagen.contenido());
         String anterior = producto.cambiarImagen(ruta);
@@ -108,9 +108,9 @@ public class ImagenProductoService implements GestionarImagenProductoUseCase {
         return guardado;
     }
 
-    private static Optional<ImagenProducto> validar(byte[] contenido) {
+    private static Optional<Imagen> validar(byte[] contenido) {
         try {
-            return Optional.of(ImagenProducto.desde(contenido));
+            return Optional.of(Imagen.desde(contenido));
         } catch (ReglaNegocioException e) {
             return Optional.empty();
         }

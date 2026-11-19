@@ -1,6 +1,6 @@
 package com.kairos.Kairos_backend.infrastructure.adapter.out.archivos;
 
-import com.kairos.Kairos_backend.domain.model.ImagenProducto;
+import com.kairos.Kairos_backend.domain.model.Imagen;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,7 @@ class HttpDescargaImagenesAdapterTest {
         servidor = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         responder("/foto.png", 200, new byte[]{1, 2, 3});
         responder("/no-existe.png", 404, new byte[0]);
-        responder("/enorme.png", 200, new byte[ImagenProducto.TAMANO_MAXIMO_BYTES + 10]);
+        responder("/enorme.png", 200, new byte[Imagen.TAMANO_MAXIMO_BYTES + 10]);
         servidor.createContext("/redirige", intercambio -> {
             intercambio.getResponseHeaders().add("Location", "/foto.png");
             intercambio.sendResponseHeaders(302, -1);

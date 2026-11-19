@@ -4,6 +4,7 @@ import com.kairos.Kairos_backend.application.port.in.ConsultarVentasUseCase.Filt
 import com.kairos.Kairos_backend.application.port.in.Solicitante;
 import com.kairos.Kairos_backend.application.port.out.ConsultaVentasPort;
 import com.kairos.Kairos_backend.application.port.out.LineaVentaDetalle;
+import com.kairos.Kairos_backend.application.port.out.ProductoVendido;
 import com.kairos.Kairos_backend.application.port.out.VentaResumen;
 import com.kairos.Kairos_backend.domain.exception.RecursoNoEncontradoException;
 import com.kairos.Kairos_backend.domain.exception.ReglaNegocioException;
@@ -106,6 +107,20 @@ class ConsultarVentasServiceTest {
                 () -> servicio.buscar(new Solicitante(7L, Rol.VENDEDOR, EMPRESA), 404L));  // no existe
     }
 
+    @Test
+    void masVendidos_usaLaMismaReglaDeQuienVeQue() {
+        servicio.masVendidos(new Solicitante(7L, Rol.VENDEDOR, EMPRESA), LocalDate.of(2026, 11, 1),
+                LocalDate.of(2026, 11, 30), 5);
+        assertEquals(7L, consulta.ultimoFiltro.idVendedor());   // el vendedor, solo sus ventas
+        assertEquals(EMPRESA, consulta.ultimoFiltro.idEmpresa());
+        assertEquals(LocalDate.of(2026, 12, 1).atStartOfDay(), consulta.ultimoFiltro.hasta());   // día completo
+
+        assertThrows(ReglaNegocioException.class, () -> servicio.masVendidos(new Solicitante(5L, Rol.ADMINISTRADOR,
+                EMPRESA), LocalDate.of(2026, 11, 30), LocalDate.of(2026, 11, 1), 5));
+        assertThrows(ReglaNegocioException.class, () -> servicio.masVendidos(new Solicitante(1L, Rol.SUPERADMIN,
+                null), LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30), 5));
+    }
+
     /** Consulta falsa con una sola venta (id 10, empresa 1, cliente 30). */
     private static class ConsultaFalsa implements ConsultaVentasPort {
 
@@ -127,6 +142,12 @@ class ConsultarVentasServiceTest {
         @Override
         public List<LineaVentaDetalle> lineasDe(Long idVenta) {
             return List.of(new LineaVentaDetalle(100L, "Audífonos", 1, BigDecimal.TEN, BigDecimal.TEN));
+        }
+
+        @Override
+        public List<ProductoVendido> masVendidos(FiltroVentas filtro, int limite) {
+            ultimoFiltro = filtro;
+            return List.of(new ProductoVendido("Audífonos", 3L, BigDecimal.TEN));
         }
     }
 }

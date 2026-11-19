@@ -1,7 +1,7 @@
 package com.kairos.Kairos_backend.infrastructure.adapter.in.web.catalogo;
 
 import com.kairos.Kairos_backend.application.port.in.GestionarImagenProductoUseCase;
-import com.kairos.Kairos_backend.domain.model.ImagenProducto;
+import com.kairos.Kairos_backend.domain.model.Imagen;
 import com.kairos.Kairos_backend.infrastructure.security.UsuarioAutenticado;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -38,7 +38,7 @@ public class ImagenProductoController {
     /** Público, como el catálogo: se puede poner directo en un <img src="...">. */
     @GetMapping
     public ResponseEntity<byte[]> ver(@PathVariable Long id) {
-        ImagenProducto imagen = imagenes.ver(id);
+        Imagen imagen = imagenes.ver(id);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(imagen.tipo().getTipoMime()))
                 // El navegador la guarda 1 hora; si la foto cambia, la URL del catálogo cambia (?v=...)

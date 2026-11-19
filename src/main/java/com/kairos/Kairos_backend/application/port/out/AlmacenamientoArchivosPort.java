@@ -16,6 +16,9 @@ public interface AlmacenamientoArchivosPort {
     /** Vacío si el archivo no existe. */
     Optional<byte[]> leer(String ruta);
 
+    /** Pregunta barata (no lee el archivo): sirve para saber si una empresa tiene logo. */
+    boolean existe(String ruta);
+
     /** No falla si el archivo ya no existe. */
     void borrar(String ruta);
 }

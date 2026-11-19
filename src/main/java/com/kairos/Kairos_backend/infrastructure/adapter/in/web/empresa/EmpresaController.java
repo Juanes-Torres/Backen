@@ -2,8 +2,10 @@ package com.kairos.Kairos_backend.infrastructure.adapter.in.web.empresa;
 
 import com.kairos.Kairos_backend.application.port.in.ConsultarEmpresasActivasUseCase;
 import com.kairos.Kairos_backend.application.port.in.GestionarEmpresasUseCase;
+import com.kairos.Kairos_backend.application.port.in.MarcaEmpresaUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarEmpresaUseCase;
 import com.kairos.Kairos_backend.application.port.in.RegistrarEmpresaUseCase.RegistrarEmpresaCommand;
+import com.kairos.Kairos_backend.domain.model.Empresa;
 import com.kairos.Kairos_backend.domain.model.EstadoEmpresa;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -31,19 +33,26 @@ public class EmpresaController {
     private final RegistrarEmpresaUseCase registrarEmpresa;
     private final GestionarEmpresasUseCase gestionarEmpresas;
     private final ConsultarEmpresasActivasUseCase empresasActivas;
+    private final MarcaEmpresaUseCase marca;
 
     public EmpresaController(RegistrarEmpresaUseCase registrarEmpresa,
                              GestionarEmpresasUseCase gestionarEmpresas,
-                             ConsultarEmpresasActivasUseCase empresasActivas) {
+                             ConsultarEmpresasActivasUseCase empresasActivas,
+                             MarcaEmpresaUseCase marca) {
         this.registrarEmpresa = registrarEmpresa;
         this.gestionarEmpresas = gestionarEmpresas;
         this.empresasActivas = empresasActivas;
+        this.marca = marca;
+    }
+
+    private EmpresaResponse conLogo(Empresa empresa) {
+        return EmpresaResponse.desde(empresa, marca.tieneLogo(empresa.getId()));
     }
 
     /** Público: las empresas activas, para que el cliente elija dónde comprar. */
     @GetMapping("/activas")
     public List<EmpresaPublicaResponse> listarActivas() {
-        return empresasActivas.listarActivas().stream().map(EmpresaPublicaResponse::desde).toList();
+        return empresasActivas.listarActivas().stream().map(e -> EmpresaPublicaResponse.desde(e, marca.tieneLogo(e.getId()))).toList();
     }
 
     /** Registro público: la empresa queda PENDIENTE junto con su administrador. */
@@ -60,36 +69,36 @@ public class EmpresaController {
     @GetMapping
     @PreAuthorize("hasRole('SUPERADMIN')")
     public List<EmpresaResponse> listar(@RequestParam(required = false) EstadoEmpresa estado) {
-        return gestionarEmpresas.listar(estado).stream().map(EmpresaResponse::desde).toList();
+        return gestionarEmpresas.listar(estado).stream().map(this::conLogo).toList();
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('SUPERADMIN')")
     public EmpresaResponse buscarPorId(@PathVariable Long id) {
-        return EmpresaResponse.desde(gestionarEmpresas.buscarPorId(id));
+        return conLogo(gestionarEmpresas.buscarPorId(id));
     }
 
     @PatchMapping("/{id}/aprobar")
     @PreAuthorize("hasRole('SUPERADMIN')")
     public EmpresaResponse aprobar(@PathVariable Long id) {
-        return EmpresaResponse.desde(gestionarEmpresas.aprobar(id));
+        return conLogo(gestionarEmpresas.aprobar(id));
     }
 
     @PatchMapping("/{id}/rechazar")
     @PreAuthorize("hasRole('SUPERADMIN')")
     public EmpresaResponse rechazar(@PathVariable Long id) {
-        return EmpresaResponse.desde(gestionarEmpresas.rechazar(id));
+        return conLogo(gestionarEmpresas.rechazar(id));
     }
 
     @PatchMapping("/{id}/suspender")
     @PreAuthorize("hasRole('SUPERADMIN')")
     public EmpresaResponse suspender(@PathVariable Long id) {
-        return EmpresaResponse.desde(gestionarEmpresas.suspender(id));
+        return conLogo(gestionarEmpresas.suspender(id));
     }
 
     @PatchMapping("/{id}/reactivar")
     @PreAuthorize("hasRole('SUPERADMIN')")
     public EmpresaResponse reactivar(@PathVariable Long id) {
-        return EmpresaResponse.desde(gestionarEmpresas.reactivar(id));
+        return conLogo(gestionarEmpresas.reactivar(id));
     }
 }

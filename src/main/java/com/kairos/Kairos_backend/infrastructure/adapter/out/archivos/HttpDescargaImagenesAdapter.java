@@ -1,7 +1,7 @@
 package com.kairos.Kairos_backend.infrastructure.adapter.out.archivos;
 
 import com.kairos.Kairos_backend.application.port.out.DescargaImagenesPort;
-import com.kairos.Kairos_backend.domain.model.ImagenProducto;
+import com.kairos.Kairos_backend.domain.model.Imagen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,8 +65,8 @@ public class HttpDescargaImagenesAdapter implements DescargaImagenesPort {
                     return Optional.empty();
                 }
                 // Se lee un byte de más: si llega, la imagen pasa del máximo y se descarta
-                byte[] contenido = cuerpo.readNBytes(ImagenProducto.TAMANO_MAXIMO_BYTES + 1);
-                if (contenido.length > ImagenProducto.TAMANO_MAXIMO_BYTES) {
+                byte[] contenido = cuerpo.readNBytes(Imagen.TAMANO_MAXIMO_BYTES + 1);
+                if (contenido.length > Imagen.TAMANO_MAXIMO_BYTES) {
                     log.info("La imagen {} pesa más de 2 MB", url);
                     return Optional.empty();
                 }

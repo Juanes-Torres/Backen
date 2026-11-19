@@ -3,14 +3,14 @@ package com.kairos.Kairos_backend.domain.model;
 import com.kairos.Kairos_backend.domain.exception.ReglaNegocioException;
 
 /**
- * Foto de un producto ya validada: es JPG, PNG o WEBP y pesa máximo 2 MB (SCRUM-103).
- * Solo se crea con {@link #desde(byte[])}, así que toda ImagenProducto que existe es válida.
+ * Foto ya validada (de un producto o el logo de una empresa): es JPG, PNG o WEBP y pesa máximo 2 MB.
+ * Solo se crea con {@link #desde(byte[])}, así que toda Imagen que existe es válida.
  */
-public record ImagenProducto(byte[] contenido, TipoImagen tipo) {
+public record Imagen(byte[] contenido, TipoImagen tipo) {
 
     public static final int TAMANO_MAXIMO_BYTES = 2 * 1024 * 1024;
 
-    public ImagenProducto {
+    public Imagen {
         if (contenido == null || contenido.length == 0) {
             throw new ReglaNegocioException("La imagen está vacía");
         }
@@ -23,13 +23,13 @@ public record ImagenProducto(byte[] contenido, TipoImagen tipo) {
     }
 
     /** Revisa el contenido real del archivo (no su nombre ni lo que diga el navegador). */
-    public static ImagenProducto desde(byte[] contenido) {
+    public static Imagen desde(byte[] contenido) {
         if (contenido == null || contenido.length == 0) {
             throw new ReglaNegocioException("La imagen está vacía");
         }
         TipoImagen tipo = TipoImagen.detectar(contenido)
                 .orElseThrow(() -> new ReglaNegocioException("La imagen debe ser JPG, PNG o WEBP"));
-        return new ImagenProducto(contenido, tipo);
+        return new Imagen(contenido, tipo);
     }
 
     // equals/hashCode/toString de un record con arreglo comparan la referencia y no el contenido:
@@ -37,7 +37,7 @@ public record ImagenProducto(byte[] contenido, TipoImagen tipo) {
 
     @Override
     public boolean equals(Object otro) {
-        return otro instanceof ImagenProducto(byte[] c, TipoImagen t)
+        return otro instanceof Imagen(byte[] c, TipoImagen t)
                 && t == tipo && java.util.Arrays.equals(c, contenido);
     }
 
@@ -48,6 +48,6 @@ public record ImagenProducto(byte[] contenido, TipoImagen tipo) {
 
     @Override
     public String toString() {
-        return "ImagenProducto[" + tipo + ", " + contenido.length + " bytes]";
+        return "Imagen[" + tipo + ", " + contenido.length + " bytes]";
     }
 }
