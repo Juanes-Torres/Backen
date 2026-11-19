@@ -1,5 +1,6 @@
 package com.kairos.Kairos_backend.infrastructure.adapter.in.web.venta;
 
+import com.kairos.Kairos_backend.application.port.in.ConsultarFacturaUseCase;
 import com.kairos.Kairos_backend.application.port.in.ConsultarVentasUseCase;
 import com.kairos.Kairos_backend.application.port.in.ConsultarVentasUseCase.Filtro;
 import com.kairos.Kairos_backend.application.port.in.GenerarQrFacturaUseCase;
@@ -37,12 +38,14 @@ public class VentaController {
     private final RegistrarVentaUseCase registrarVenta;
     private final GenerarQrFacturaUseCase qrFactura;
     private final ConsultarVentasUseCase consultarVentas;
+    private final ConsultarFacturaUseCase consultarFactura;
 
     public VentaController(RegistrarVentaUseCase registrarVenta, GenerarQrFacturaUseCase qrFactura,
-                           ConsultarVentasUseCase consultarVentas) {
+                           ConsultarVentasUseCase consultarVentas, ConsultarFacturaUseCase consultarFactura) {
         this.registrarVenta = registrarVenta;
         this.qrFactura = qrFactura;
         this.consultarVentas = consultarVentas;
+        this.consultarFactura = consultarFactura;
     }
 
     /**
@@ -64,6 +67,15 @@ public class VentaController {
     @GetMapping("/{id}")
     public VentaDetalleResponse buscar(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado yo) {
         return VentaDetalleResponse.desde(consultarVentas.buscar(yo.comoSolicitante(), id));
+    }
+
+    /**
+     * Todo lo que va impreso en la factura: empresa y NIT, sede, vendedor, cliente con cédula y,
+     * por producto, hasta cuándo tiene garantía. Mismos permisos que el detalle de la venta.
+     */
+    @GetMapping("/{id}/factura")
+    public FacturaResponse factura(@PathVariable Long id, @AuthenticationPrincipal UsuarioAutenticado yo) {
+        return FacturaResponse.desde(consultarFactura.factura(yo.comoSolicitante(), id));
     }
 
     /** Registrar una venta: descuenta el stock y genera el número de factura. */

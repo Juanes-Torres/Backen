@@ -2045,6 +2045,40 @@
           ]
         },
         {
+          "name": "Ver factura completa (empresa, NIT, sede, cliente y garantía)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ventas/{{idVenta}}/factura",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                "{{idVenta}}",
+                "factura"
+              ]
+            },
+            "description": "Todo lo que va impreso en la factura: empresa y NIT, sede con dirección, vendedor, cliente (nombre y cédula, nunca su correo) y por cada producto hasta qué fecha tiene garantía (`garantiaHasta`, nulo si no tiene). Mismos permisos que el detalle de la venta."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));",
+                  "const f = pm.response.json();",
+                  "pm.test(\"Trae empresa con NIT y sede\", () => { pm.expect(f.empresa.nit).to.be.a(\"string\"); pm.expect(f.sede.nombre).to.be.a(\"string\"); });",
+                  "pm.test(\"Cada producto dice sus meses de garantía\", () => f.lineas.forEach(l => pm.expect(l.mesesGarantia).to.be.a(\"number\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Ventas de la empresa, con nombres (admin)",
           "request": {
             "method": "GET",
