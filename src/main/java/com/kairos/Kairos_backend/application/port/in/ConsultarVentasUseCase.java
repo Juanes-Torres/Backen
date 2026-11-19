@@ -1,6 +1,7 @@
 package com.kairos.Kairos_backend.application.port.in;
 
 import com.kairos.Kairos_backend.application.port.out.LineaVentaDetalle;
+import com.kairos.Kairos_backend.application.port.out.ProductoVendido;
 import com.kairos.Kairos_backend.application.port.out.VentaResumen;
 
 import java.time.LocalDate;
@@ -15,6 +16,12 @@ import java.util.List;
 public interface ConsultarVentasUseCase {
 
     List<VentaResumen> listar(Solicitante solicitante, Filtro filtro);
+
+    /**
+     * Los productos más vendidos entre dos días (incluidos), con las mismas reglas de quién ve qué
+     * ventas que listar(): el administrador, su empresa; el vendedor, solo sus ventas.
+     */
+    List<ProductoVendido> masVendidos(Solicitante solicitante, LocalDate desde, LocalDate hasta, int limite);
 
     /** Una factura con sus productos. La ven los empleados de esa empresa o el cliente que compró. */
     VentaConDetalle buscar(Solicitante solicitante, Long idVenta);

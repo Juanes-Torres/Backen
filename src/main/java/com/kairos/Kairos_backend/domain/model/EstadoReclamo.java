@@ -21,6 +21,11 @@ public enum EstadoReclamo {
         return siguientes().contains(siguiente);
     }
 
+    /** Abierto mientras le falte algún paso: solo ENTREGADO lo cierra (para el panel de inicio). */
+    public boolean estaAbierto() {
+        return !siguientes().isEmpty();
+    }
+
     private Set<EstadoReclamo> siguientes() {
         return switch (this) {
             case RECIBIDO -> Set.of(EN_REVISION, RECHAZADO);

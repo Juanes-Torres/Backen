@@ -45,8 +45,6 @@ public class HerramientasAsistente {
     static final String HERRAMIENTA_VENTAS = "resumen_ventas";
     static final String HERRAMIENTA_BAJO_STOCK = "productos_bajo_stock";
 
-    private static final int MAX_VENTAS_EN_RESUMEN = 200;
-
     private final ConsultarGarantiasUseCase garantias;
     private final GestionarReclamosUseCase reclamos;
     private final GestionarInventarioUseCase inventario;
@@ -174,15 +172,9 @@ public class HerramientasAsistente {
         }
         BigDecimal total = lista.stream().map(VentaResumen::total).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Unidades vendidas por producto (de las ventas más recientes, hasta un máximo)
-        Map<String, Integer> unidades = new LinkedHashMap<>();
-        lista.stream().limit(MAX_VENTAS_EN_RESUMEN)
-                .flatMap(v -> ventas.buscar(s, v.id()).lineas().stream())
-                .forEach(l -> unidades.merge(l.producto(), l.cantidad(), Integer::sum));
-        String masVendidos = unidades.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(5)
-                .map(e -> e.getKey() + " (" + e.getValue() + " unidades)")
+        // Una sola consulta con la misma regla que usa el panel de inicio
+        String masVendidos = ventas.masVendidos(s, inicio, fin, 5).stream()
+                .map(p -> p.producto() + " (" + p.unidades() + " unidades)")
                 .collect(Collectors.joining(", "));
 
         Map<String, Long> porSede = lista.stream()

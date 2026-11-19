@@ -17,6 +17,9 @@ public interface ConsultaVentasPort {
 
     List<LineaVentaDetalle> lineasDe(Long idVenta);
 
+    /** Los productos más vendidos con ese filtro (por unidades, de mayor a menor), máximo "limite". */
+    List<ProductoVendido> masVendidos(FiltroVentas filtro, int limite);
+
     /**
      * Un campo nulo significa "sin ese filtro". El rango de fechas siempre llega lleno:
      * desde (incluido) hasta (excluido).

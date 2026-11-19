@@ -4,6 +4,7 @@ import com.kairos.Kairos_backend.application.port.in.ConsultarVentasUseCase;
 import com.kairos.Kairos_backend.application.port.in.Solicitante;
 import com.kairos.Kairos_backend.application.port.out.ConsultaVentasPort;
 import com.kairos.Kairos_backend.application.port.out.ConsultaVentasPort.FiltroVentas;
+import com.kairos.Kairos_backend.application.port.out.ProductoVendido;
 import com.kairos.Kairos_backend.application.port.out.VentaResumen;
 import com.kairos.Kairos_backend.domain.exception.RecursoNoEncontradoException;
 import com.kairos.Kairos_backend.domain.exception.ReglaNegocioException;
@@ -34,22 +35,32 @@ public class ConsultarVentasService implements ConsultarVentasUseCase {
         if (desde.isAfter(hasta)) {
             throw new ReglaNegocioException("La fecha 'desde' no puede ser posterior a 'hasta'");
         }
+        return consultaVentas.listar(filtroPara(solicitante, filtro.idAlmacen(), filtro.idVendedor(), desde, hasta));
+    }
+
+    @Override
+    public List<ProductoVendido> masVendidos(Solicitante solicitante, LocalDate desde, LocalDate hasta, int limite) {
+        if (desde.isAfter(hasta)) {
+            throw new ReglaNegocioException("La fecha 'desde' no puede ser posterior a 'hasta'");
+        }
+        return consultaVentas.masVendidos(filtroPara(solicitante, null, null, desde, hasta), limite);
+    }
+
+    /** La regla de quién ve qué ventas, en un solo lugar (la usan listar y masVendidos). */
+    private static FiltroVentas filtroPara(Solicitante solicitante, Long idAlmacen, Long idVendedor,
+                                           LocalDate desde, LocalDate hasta) {
         // hasta incluye el día completo: se busca hasta el inicio del día siguiente
         LocalDateTime inicio = desde.atStartOfDay();
         LocalDateTime fin = hasta.plusDays(1).atStartOfDay();
-
-        FiltroVentas consulta = switch (solicitante.rol()) {
-            case ADMINISTRADOR -> new FiltroVentas(solicitante.idEmpresa(), filtro.idAlmacen(), filtro.idVendedor(),
-                    null, inicio, fin);
+        return switch (solicitante.rol()) {
+            case ADMINISTRADOR -> new FiltroVentas(solicitante.idEmpresa(), idAlmacen, idVendedor, null, inicio, fin);
             // El vendedor solo ve sus ventas, aunque pida las de otro
-            case VENDEDOR -> new FiltroVentas(solicitante.idEmpresa(), filtro.idAlmacen(), solicitante.idUsuario(),
-                    null, inicio, fin);
-            // El cliente ve sus compras en todas las empresas
-            case CLIENTE -> new FiltroVentas(null, filtro.idAlmacen(), filtro.idVendedor(), solicitante.idUsuario(),
+            case VENDEDOR -> new FiltroVentas(solicitante.idEmpresa(), idAlmacen, solicitante.idUsuario(), null,
                     inicio, fin);
+            // El cliente ve sus compras en todas las empresas
+            case CLIENTE -> new FiltroVentas(null, idAlmacen, idVendedor, solicitante.idUsuario(), inicio, fin);
             case SUPERADMIN -> throw new ReglaNegocioException("El superadministrador no consulta ventas de las empresas");
         };
-        return consultaVentas.listar(consulta);
     }
 
     @Override

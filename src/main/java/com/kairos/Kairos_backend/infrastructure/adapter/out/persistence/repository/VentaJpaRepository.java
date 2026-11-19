@@ -2,8 +2,10 @@ package com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.reposit
 
 import com.kairos.Kairos_backend.application.port.out.CompraConGarantia;
 import com.kairos.Kairos_backend.application.port.out.LineaVentaDetalle;
+import com.kairos.Kairos_backend.application.port.out.ProductoVendido;
 import com.kairos.Kairos_backend.application.port.out.VentaResumen;
 import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.entity.VentaEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -41,6 +43,33 @@ public interface VentaJpaRepository extends JpaRepository<VentaEntity, Long> {
                                      @Param("idCliente") Long idCliente,
                                      @Param("desde") LocalDateTime desde,
                                      @Param("hasta") LocalDateTime hasta);
+
+    /**
+     * Unidades y total vendidos por producto, en UNA sola consulta (antes se leía venta por venta).
+     * Mismos filtros que listarResumen; el límite llega en el Pageable.
+     */
+    @Query("""
+            SELECT new com.kairos.Kairos_backend.application.port.out.ProductoVendido(
+                p.nombre, SUM(d.cantidad), SUM(d.subtotal))
+            FROM VentaEntity v
+            JOIN v.detalles d
+            JOIN ProductoEntity p ON p.id = d.idProducto
+            WHERE (:idEmpresa IS NULL OR v.idEmpresa = :idEmpresa)
+              AND (:idAlmacen IS NULL OR v.idAlmacen = :idAlmacen)
+              AND (:idVendedor IS NULL OR v.idVendedor = :idVendedor)
+              AND (:idCliente IS NULL OR v.idCliente = :idCliente)
+              AND v.fecha >= :desde AND v.fecha < :hasta
+            GROUP BY p.id, p.nombre
+            ORDER BY SUM(d.cantidad) DESC, p.nombre
+            """)
+    List<ProductoVendido> masVendidos(
+            @Param("idEmpresa") Long idEmpresa,
+            @Param("idAlmacen") Long idAlmacen,
+            @Param("idVendedor") Long idVendedor,
+            @Param("idCliente") Long idCliente,
+            @Param("desde") LocalDateTime desde,
+            @Param("hasta") LocalDateTime hasta,
+            Pageable pagina);
 
     @Query("""
             SELECT new com.kairos.Kairos_backend.application.port.out.VentaResumen(

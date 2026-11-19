@@ -2,8 +2,10 @@ package com.kairos.Kairos_backend.infrastructure.adapter.out.persistence;
 
 import com.kairos.Kairos_backend.application.port.out.ConsultaVentasPort;
 import com.kairos.Kairos_backend.application.port.out.LineaVentaDetalle;
+import com.kairos.Kairos_backend.application.port.out.ProductoVendido;
 import com.kairos.Kairos_backend.application.port.out.VentaResumen;
 import com.kairos.Kairos_backend.infrastructure.adapter.out.persistence.repository.VentaJpaRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,5 +37,11 @@ public class VentaConsultaPersistenceAdapter implements ConsultaVentasPort {
     @Override
     public List<LineaVentaDetalle> lineasDe(Long idVenta) {
         return jpaRepository.lineasDe(idVenta);
+    }
+
+    @Override
+    public List<ProductoVendido> masVendidos(FiltroVentas filtro, int limite) {
+        return jpaRepository.masVendidos(filtro.idEmpresa(), filtro.idAlmacen(), filtro.idVendedor(),
+                filtro.idCliente(), filtro.desde(), filtro.hasta(), PageRequest.of(0, limite));
     }
 }
