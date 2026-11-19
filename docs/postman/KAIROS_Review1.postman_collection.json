@@ -102,6 +102,10 @@
     {
       "key": "idReclamo",
       "value": ""
+    },
+    {
+      "key": "logoUrl",
+      "value": ""
     }
   ],
   "item": [
@@ -812,7 +816,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));"
+                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Cada producto dice quién lo vende y si está disponible (SCRUM-107)\", () => pm.response.json().forEach(p => { pm.expect(p.empresa).to.be.a(\"string\"); pm.expect(p.disponible).to.be.a(\"boolean\"); }));"
                 ]
               }
             }
@@ -1961,6 +1966,173 @@
                 "exec": [
                   "pm.test(\"Código 200\", () => pm.response.to.have.status(200));",
                   "if (pm.response.code === 200) { pm.collectionVariables.set(\"token\", pm.response.json().token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mi empresa (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/empresas/mi-empresa",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "empresas",
+                "mi-empresa"
+              ]
+            },
+            "description": "SCRUM-105. La empresa del empleado (admin o vendedor), con `logoUrl` (nulo si no tiene). Con esto el frontend muestra el nombre y el logo de la empresa en la barra en vez de KAIRÓS."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Trae nombre y NIT\", () => { const e = pm.response.json(); pm.expect(e.nombre).to.be.a(\"string\"); pm.expect(e.nit).to.be.a(\"string\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Subir logo de mi empresa (admin)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/empresas/mi-empresa/logo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "empresas",
+                "mi-empresa",
+                "logo"
+              ]
+            },
+            "description": "SCRUM-105. form-data, campo **archivo** (JPG, PNG o WEBP, máximo 2 MB). Si Postman no encuentra el archivo, elige cualquier imagen en *Value*.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "archivo",
+                  "type": "file",
+                  "src": "foto-producto.png"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Ahora tiene logoUrl\", () => pm.expect(pm.response.json().logoUrl).to.include(\"/logo\"));",
+                  "if (pm.response.code === 200) { pm.collectionVariables.set(\"logoUrl\", pm.response.json().logoUrl); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ver logo de la empresa (público)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{logoUrl}}",
+              "host": [
+                "{{baseUrl}}{{logoUrl}}"
+              ]
+            },
+            "description": "Público. Solo empresas activas. Trae `ETag`: si el logo no cambió, el navegador recibe 304.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Es una imagen\", () => pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"image/\"));",
+                  "pm.test(\"Trae ETag para el caché\", () => pm.expect(pm.response.headers.get(\"ETag\")).to.be.a(\"string\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Quitar logo de mi empresa (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/empresas/mi-empresa/logo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "empresas",
+                "mi-empresa",
+                "logo"
+              ]
+            },
+            "description": "Borra el logo: el frontend vuelve a mostrar la marca por defecto."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Panel de inicio (admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/panel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "panel"
+              ]
+            },
+            "description": "SCRUM-106. Números para tarjetas y gráfica. Admin: su empresa. Vendedor: solo sus ventas y su sede. Superadmin: `empresasPorEstado`. Cliente: 403."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Código 200\", () => pm.response.to.have.status(200));",
+                  "const p = pm.response.json();",
+                  "pm.test(\"Trae ventas de hoy, 7 días y mes\", () => { pm.expect(p.ventas.hoy).to.have.property(\"total\"); pm.expect(p.ventas.porDia).to.have.lengthOf(7); });",
+                  "pm.test(\"Trae bajo stock y reclamos abiertos\", () => { pm.expect(p.productosBajoStock).to.be.a(\"number\"); pm.expect(p.reclamosAbiertos).to.be.a(\"number\"); });"
                 ]
               }
             }
